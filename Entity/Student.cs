@@ -1,4 +1,4 @@
-﻿namespace testorm
+﻿namespace testorm.Entity
 {
     public class Student
     {

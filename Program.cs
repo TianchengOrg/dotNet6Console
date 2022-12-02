@@ -3,24 +3,112 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MiniExcelLibs;
 using SqlSugar;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Text;
 using System.Xml.Linq;
+using testorm.Entity;
 
 namespace testorm
 {
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            string dns = "DSN=HiveWare;UID=root;PWD=";
+            SqlSugarClient Db = new SqlSugarClient(new ConnectionConfig()
+            {
+                ConnectionString = dns,
+                DbType = SqlSugar.DbType.Odbc,
+                IsAutoCloseConnection = true,
+            });
+            Console.WriteLine("创建链接");
+            var dt2 = Db.Ado.GetDataTable("select *from employee");
+            Console.WriteLine("获取数据成功: 数量为"+dt2.Rows.Count);
+
+        }
+    }*/
+
     /*/// <summary>
+    /// sqlsugar 对象映射错误检测
+    /// </summary>
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            //锦溪正式Oracle
+            var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=jxbaizedb-scan1.luxshare.com.cn)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedb)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
+            {
+                ConfigId = "A",
+                ConnectionString = oracleConn,
+                DbType = SqlSugar.DbType.Oracle
+            });
+
+            var list = sqlSugarClient.Queryable<Report>().ToList();
+
+            // 获取原始表数据
+            sqlSugarClient.Close();
+            sqlSugarClient.Dispose();
+        }
+    }*/
+
+    /*/// <summary>
+    /// Oracle to Oracle
+    /// </summary>
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            //锦溪正式Oracle
+            var oracleConn1 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=jxbaizedb-scan1.luxshare.com.cn)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedb)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            // 锦溪测试Oracle
+            var oracleConn2 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.32.44.54)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedev)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
+            {
+                ConfigId = "A",
+                ConnectionString = oracleConn1,
+                DbType = SqlSugar.DbType.Oracle
+            });
+
+            // 获取原始表数据
+            var sql = $"select * from AUTO_REPORT_EXCEL";
+            var dt = sqlSugarClient.Ado.GetDataTable(sql);
+            sqlSugarClient.Close();
+            sqlSugarClient.Dispose();
+            // 链接Oracle
+            SqlSugarClient sqlSugarClient2 = new SqlSugarClient(new ConnectionConfig
+            {
+                ConfigId = "A",
+                ConnectionString = oracleConn2,
+                DbType = SqlSugar.DbType.Oracle
+            });
+            //int a = sqlSugarClient2.Ado.ExecuteCommand(tableCreat.ToString());
+
+            sqlSugarClient2.Fastest<System.Data.DataTable>().AS("AUTO_REPORT_EXCEL").BulkCopy(dt);
+            sqlSugarClient2.Close();
+            sqlSugarClient2.Dispose();
+        }
+    }*/
+
+    /// <summary>
     /// 数据库搬迁从mysql 到 oracle
     /// </summary>
     public class Program
     {
         public static void Main(string[] args)
         {
-            string tableName = "auto_turn";
-            var mysqlConn = "Server=10.32.44.78;User ID=report01;Password=Baize.2022;port=3306;Database=aj_report;CharSet=utf8;pooling=true;SslMode=None;";
-            var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=jxbaizedb-scan1.luxshare.com.cn)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedb)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            // m
+            string tableName = args[0];
+            bool createFlag = true;
+
+            var mysqlConn = "Server=10.58.2.21;User ID=report01;Password=Baize.2022;port=3306;Database=aj_report;CharSet=utf8;pooling=true;SslMode=None;";
+            // 锦溪正式Oracle
+            var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.57.12.13)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=dshbaize)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            // 锦溪测试Oracle
+            //var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.32.44.54)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedev)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
             SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
             {
                 ConfigId = "A",
@@ -29,28 +117,30 @@ namespace testorm
             });
             // 生成建表语句
             List<string> sqls = new();
-            var tableSql = $@"SELECT   TABLE_NAME tableName
-                                   , COLUMN_NAME columnName
-	                               , COLUMN_KEY  columnConstraint
-                                   , COLUMN_COMMENT columnComment
-                                   , DATA_TYPE columnType
-                                   , CHARACTER_MAXIMUM_LENGTH columnLength
-                                   , CHARACTER_OCTET_LENGTH columnOctetLength
-                                   , NUMERIC_PRECISION	columnNumberPrecision
-                                   , NUMERIC_SCALE  columnNumberScale
-                                   , COLUMN_DEFAULT columnDefault
-                                   , IS_NULLABLE columnIsNullable
-                            FROM INFORMATION_SCHEMA.COLUMNS
-                            where TABLE_NAME = '{tableName}'";
+            var tableSql = $@"SELECT  distinct TABLE_NAME tableName
+                                       , COLUMN_NAME columnName
+                                       , COLUMN_KEY  columnConstraint
+                                       , COLUMN_COMMENT columnComment
+                                       , DATA_TYPE columnType
+                                       , CHARACTER_MAXIMUM_LENGTH columnLength
+                                       , CHARACTER_OCTET_LENGTH columnOctetLength
+                                       , NUMERIC_PRECISION	columnNumberPrecision
+                                       , NUMERIC_SCALE  columnNumberScale
+                                       , COLUMN_DEFAULT columnDefault
+                                       , IS_NULLABLE columnIsNullable
+                                FROM INFORMATION_SCHEMA.COLUMNS
+                                where TABLE_NAME = '{tableName}'
+                                and TABLE_SCHEMA ='aj_report'";
             List<tableInfo> list = sqlSugarClient.Ado.SqlQuery<tableInfo>(tableSql);
-            if(list.Count == 0)
+            Console.WriteLine(list.Count);
+            if (list.Count == 0)
             {
                 throw new Exception("表不存在！");
             }
             StringBuilder tableCreat = new StringBuilder("CREATE TABLE ");
             tableCreat.Append(list.First().tableName.ToUpper());
             tableCreat.Append(" (");
-            foreach(var item in list)
+            foreach (var item in list)
             {
                 tableCreat.Append('\n');
                 tableCreat.Append("     ");
@@ -58,11 +148,11 @@ namespace testorm
                 tableCreat.Append(item.columnName.ToUpper());
                 tableCreat.Append('"');
                 tableCreat.Append(" ");
-                tableCreat.Append(getType(SqlSugar.DbType.MySql, SqlSugar.DbType.Oracle,item));
+                tableCreat.Append(getType(SqlSugar.DbType.MySql, SqlSugar.DbType.Oracle, item));
                 tableCreat.Append(" ");
-                tableCreat.Append(item.columnIsNullable == "YES"? "" : "NOT NULL ");
+                tableCreat.Append(item.columnIsNullable == "YES" ? "" : "NOT NULL ");
                 tableCreat.Append(" ");
-                tableCreat.Append(item.columnDefault==null?"": $" DEFAULT {item.columnDefault} ");
+                tableCreat.Append(item.columnDefault == null ? "" : $" DEFAULT {item.columnDefault} ");
                 tableCreat.Append(" ,");
             }
             tableCreat.Append(getConstraint(list));
@@ -72,7 +162,7 @@ namespace testorm
             sqls.Add(tableCreat.ToString());
             // 注释\
 
-            foreach(var item in list)
+            foreach (var item in list)
             {
                 tableCreat.Clear();
                 tableCreat.Append("COMMENT ON COLUMN ");
@@ -87,7 +177,7 @@ namespace testorm
             }
 
             // 获取原始表数据
-            var sql = $"select * from {tableName}";
+            var sql = $"select * from aj_report.{tableName}";
             var dt = sqlSugarClient.Ado.GetDataTable(sql);
             sqlSugarClient.Close();
             sqlSugarClient.Dispose();
@@ -99,18 +189,24 @@ namespace testorm
                 DbType = SqlSugar.DbType.Oracle
             });
             // 执行建表语句
-            using (sqlSugarClient2.Ado.OpenAlways())
-            { //开启长连接
+            if (createFlag)
+            {
+                Console.WriteLine("开始执行建表！");
+                using (sqlSugarClient2.Ado.OpenAlways())
+                { //开启长连接
 
-                foreach (var str in sqls)
-                {
-                    sqlSugarClient2.Ado.ExecuteCommand(str);
+                    foreach (var str in sqls)
+                    {
+                        Console.WriteLine(str);
+                        Console.WriteLine("\n");
+                        sqlSugarClient2.Ado.ExecuteCommand(str);
+                    }
+
                 }
-
             }
             //int a = sqlSugarClient2.Ado.ExecuteCommand(tableCreat.ToString());
 
-            sqlSugarClient2.Fastest<System.Data.DataTable>().AS( tableName.ToUpper()).BulkCopy(dt);
+            sqlSugarClient2.Fastest<System.Data.DataTable>().AS(tableName.ToUpper()).BulkCopy(dt);
             sqlSugarClient2.Close();
             sqlSugarClient2.Dispose();
         }
@@ -118,31 +214,31 @@ namespace testorm
         private static string getConstraint(List<tableInfo> list)
         {
             StringBuilder res = new StringBuilder();
-            IEnumerable<string> keys =  list.Where(x=>!string.IsNullOrEmpty(x.columnConstraint)).Select(x => x.columnConstraint).Distinct();
-            foreach(var key in keys)
+            IEnumerable<string> keys = list.Where(x => !string.IsNullOrEmpty(x.columnConstraint)).Select(x => x.columnConstraint).Distinct();
+            foreach (var key in keys)
             {
                 switch (key)
                 {
                     case "PRI":
-                        res .Append($"\nPRIMARY KEY (\"{list.Where(x => x.columnConstraint == key).First().columnName.ToUpper()}\") ,");
+                        res.Append($"\nPRIMARY KEY (\"{list.Where(x => x.columnConstraint == key).First().columnName.ToUpper()}\") ,");
                         break;
                     case "UNI":
-                        IEnumerable<string> names =  list.Where(x => x.columnConstraint == key).Select(x => x.columnName);
-                        if(names.Count() == 1)
+                        IEnumerable<string> names = list.Where(x => x.columnConstraint == key).Select(x => x.columnName);
+                        if (names.Count() == 1)
                         {
                             res.Append($"\nCONSTRAINT {list.Where(x => x.columnConstraint == key).First().tableName.ToUpper()}_U1 UNIQUE (\"{names.First().ToUpper()}\"),");
                         }
                         else
                         {
                             StringBuilder sb = new StringBuilder();
-                            foreach(string name in names)
+                            foreach (string name in names)
                             {
                                 sb.Append('"');
                                 sb.Append(name);
                                 sb.Append('"');
                                 sb.Append(',');
                             }
-                            res.Append($"CONSTRAINT constraint_name UNIQUE ({sb.Remove(sb.Length-1,1)})");
+                            res.Append($"CONSTRAINT constraint_name UNIQUE ({sb.Remove(sb.Length - 1, 1)})");
                         }
                         break;
                     default:
@@ -155,19 +251,23 @@ namespace testorm
         private static string getType(SqlSugar.DbType frontType, SqlSugar.DbType behindType, tableInfo info)
         {
             string res = "VARCHAR2(255)";
-            switch(frontType, behindType)
+            switch (frontType, behindType)
             {
                 default:
                 case (SqlSugar.DbType.MySql, SqlSugar.DbType.Oracle):
                     switch (info.columnType)
                     {
                         case "varchar":
-                            res = $"VARCHAR2({Math.Min(info.columnLength,4000)})";
+                            res = $"VARCHAR2({Math.Min(info.columnLength, 4000)})";
                             break;
                         case "int":
+                        case "bigint":
                             res = $"NUMBER({info.columnNumberPrecision},{info.columnNumberScale})";
                             break;
                         case "text":
+                            res = "CLOB";
+                            break;
+                        case "mediumtext":
                             res = "CLOB";
                             break;
                         case "datetime":
@@ -181,7 +281,7 @@ namespace testorm
             }
             return res;
         }
-    }*/
+    }
 
     /*/// <summary>
     /// 动态语法执行
@@ -407,4 +507,5 @@ namespace testorm
 
 
     }*/
+
 }

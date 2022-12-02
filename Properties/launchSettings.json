@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "testorm": {
+      "commandName": "Project",
+      "commandLineArgs": "auto_chart_item"
+    }
+  }
+}

@@ -8,8 +8,9 @@ using System.Text;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json.Linq;
 using FluentFTP;
+using testorm.Entity;
 
-namespace testorm
+namespace testorm.Calculator
 {
     internal class DynStatement
     {
@@ -38,11 +39,11 @@ namespace testorm
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(codeToCompile);
 
             string assemblyName = Path.GetRandomFileName();
-            Write("create the random file :"+assemblyName);
-            
-            string basePath = Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location)??"";
+            Write("create the random file :" + assemblyName);
+
+            string basePath = Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location) ?? "";
             var refPaths = new[] {
-                typeof(System.Object).GetTypeInfo().Assembly.Location,
+                typeof(object).GetTypeInfo().Assembly.Location,
                 typeof(JToken).GetTypeInfo().Assembly.Location,
                 typeof(Student).GetTypeInfo().Assembly.Location,
                 typeof(IFtpClient).GetTypeInfo().Assembly.Location,
@@ -87,10 +88,10 @@ namespace testorm
                     var type = assembly.GetType("RoslynCompileSample.Writer");
                     var instance = assembly.CreateInstance("RoslynCompileSample.Writer");
                     var meth = type.GetMember("Write").First() as MethodInfo;
-                    if(meth != null && instance != null)
+                    if (meth != null && instance != null)
                     {
                         object? obj = meth.Invoke(instance, new[] { list });
-                        if(obj != null && typeof(List<Student>) == obj.GetType())
+                        if (obj != null && typeof(List<Student>) == obj.GetType())
                         {
                             return (List<Student>)obj;
                         }

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace testorm
+namespace testorm.Entity
 {
     using SqlSugar;
     using System.Collections.Concurrent;
@@ -31,11 +31,11 @@ namespace testorm
                                     )  a 
                                 ) a WHERE rn between {startRow} and {endRow}";
             //Console.WriteLine(threeSql);
-            list.Add(down(threeSql,(int)i));
+            list.Add(down(threeSql, (int)i));
             Console.WriteLine($"第{i}个线程执行完毕");
         }
 
-        public static DataTable down(string sql,int i)
+        public static DataTable down(string sql, int i)
         {
             var conn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.191.21.53)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=baizedev)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;connect timeout = 600;";
 
@@ -43,7 +43,7 @@ namespace testorm
             {
                 ConfigId = "A",
                 ConnectionString = conn,
-                DbType = SqlSugar.DbType.Oracle
+                DbType = DbType.Oracle
             });
             var sw = new Stopwatch();
             sw.Start();
@@ -54,7 +54,7 @@ FROM LEDRPT.RPT_UNIT_TRACKOUT_DETAIL WHERE workorder = '011001451939'";*/
             sw.Stop();
             Console.WriteLine($"第{i}个线程耗时:{sw.ElapsedMilliseconds / 1000},Rows={dt.Rows.Count}");
 
-            
+
             return dt;
         }
 

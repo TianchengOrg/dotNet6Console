@@ -6,18 +6,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace testorm
+namespace testorm.Entity
 {
     internal class ThreadLocal
     {
         /// <summary>
         /// 分页查询数据库 以100万为基准
         /// </summary>
-        public static void RunTaskActivity(string sql, int maxThread = 10,int totalThread = 40)
+        public static void RunTaskActivity(string sql, int maxThread = 10, int totalThread = 40)
         {
             // 获取要取得数据总数
             int total = getCount(sql);
-            int singleTaskNumber = Math.Max(total/ totalThread-1,50000);
+            int singleTaskNumber = Math.Max(total / totalThread - 1, 50000);
             List<Task> allTask = new();
             int totalTaskCount = total / singleTaskNumber + (total % singleTaskNumber == 0 ? 0 : 1);
             int circNumber = totalTaskCount / maxThread + (totalTaskCount % maxThread == 0 ? 0 : 1);
@@ -30,24 +30,24 @@ namespace testorm
                 sqlThread st = new sqlThread
                 {
                     sql = sql,
-                    startRow =  + i * singleTaskNumber,
-                    endRow = Math.Min(  (i + 1) * singleTaskNumber, total) - 1
+                    startRow = +i * singleTaskNumber,
+                    endRow = Math.Min((i + 1) * singleTaskNumber, total) - 1
                 };
                 if (st.startRow > st.endRow)
                     break;
                 int index = i;
 
-                if(allTask.Count >= maxThread)
+                if (allTask.Count >= maxThread)
                 {
-                    while (allTask.Where(x=> x.Status == TaskStatus.Running || x.Status == TaskStatus.WaitingToRun).Count()>= maxThread)
+                    while (allTask.Where(x => x.Status == TaskStatus.Running || x.Status == TaskStatus.WaitingToRun).Count() >= maxThread)
                     {
                         // 关闭不需要的线程
                         Thread.Sleep(100);
                         allTask = allTask.Where(x => x.Status == TaskStatus.Created || x.Status == TaskStatus.Running || x.Status == TaskStatus.WaitingToRun).ToList();
                     }
-                    
+
                 }
-                    
+
                 allTask.Add(Task.Run(() =>
                 {
                     st.executeSql(index);
@@ -55,7 +55,7 @@ namespace testorm
                 }));
             };
             // Task.WaitAll(allTask.ToArray());
-            
+
             Task.WaitAll(allTask.ToArray());
             sw.Stop();
             Console.WriteLine($"耗时{sw.ElapsedMilliseconds / 1000}s");
@@ -64,7 +64,7 @@ namespace testorm
         /// <summary>
         /// 分页查询数据库 以100万为基准
         /// </summary>
-        public static void RunTaskSql( string sql, int maxThread = 10,int singleTaskNumber = 10000 )
+        public static void RunTaskSql(string sql, int maxThread = 10, int singleTaskNumber = 10000)
         {
             // 获取要取得数据总数
             int total = getCount(sql);
@@ -74,7 +74,7 @@ namespace testorm
 
             var sw = new Stopwatch();
             sw.Start();
-            for (int j = 0;j<circNumber; j++)
+            for (int j = 0; j < circNumber; j++)
             {
                 for (int i = 0; i < maxThread; i++)
                 {
@@ -82,7 +82,7 @@ namespace testorm
                     {
                         sql = sql,
                         startRow = j * maxThread * singleTaskNumber + i * singleTaskNumber,
-                        endRow = Math.Min(j * maxThread * singleTaskNumber + (i + 1) * singleTaskNumber, total)-1
+                        endRow = Math.Min(j * maxThread * singleTaskNumber + (i + 1) * singleTaskNumber, total) - 1
                     };
                     if (st.startRow > st.endRow)
                         break;
@@ -117,7 +117,7 @@ namespace testorm
                         sw.Start();
                         DealWithData(list);
                         sw.Stop();
-                        Console.WriteLine($"线程执行完成，数量{list.Count}， 当前执行{alreadyCount += list.Count}，剩余{preList.Count - alreadyCount}，耗时{sw.ElapsedMilliseconds/1000}ms");
+                        Console.WriteLine($"线程执行完成，数量{list.Count}， 当前执行{alreadyCount += list.Count}，剩余{preList.Count - alreadyCount}，耗时{sw.ElapsedMilliseconds / 1000}ms");
 
                     }));
                 }
