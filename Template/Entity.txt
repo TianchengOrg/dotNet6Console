@@ -1,0 +1,17 @@
+﻿using Baize.Core.Models;
+using SqlSugar;
+using System;
+
+namespace {namespace};
+/// <summary>
+/// 描述：{description}
+/// 作者：{auther}
+/// 创建日期：{createDate}
+/// 版本：{version}
+/// </summary>
+[SugarTable("{tableName}")]
+public class {className}:BaseEntity
+{
+{content}
+}
+

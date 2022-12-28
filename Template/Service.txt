@@ -1,0 +1,109 @@
+﻿
+using Baize.Core.Extensions;
+using Baize.Core.Models;
+using Baize.Entities.AutoReportCenter.Cache;
+using Baize.Entities.AutoReportCenter.Entity;
+using Baize.Entities.AutoReportCenter.Input;
+using Baize.Services.AutoReportCenter.IService;
+using Newtonsoft.Json.Linq;
+using Spire.Pdf.Exporting.XPS.Schema;
+using SqlSugar;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace {namespace};
+
+public class {className}Services : I{className}Services
+{
+    /// <summary>
+    /// 仓储字段
+    /// </summary>
+    private SqlSugarScopeProvider repository;
+
+    private IDbEngineServices dbEngine;
+
+    public {className}Services(ISqlSugarClient _sqlSugarClient
+                        , IDbEngineServices dbService)
+    {
+        repository = (_sqlSugarClient as SqlSugarScope).GetConnectionScope("BaiZeRpt");
+        this.dbEngine = dbService;
+    }
+
+
+
+    /// <summary>
+    /// 添加新的{className}
+    /// </summary>
+    public async Task<double> addAsync({className}Input input)
+    {
+        //var inputentitys = await repository.Queryable<{className}>().Where(x =>  x.DeleteFlag == "N").ToListAsync();
+        //if (inputentitys.Any())
+        //    return AutoCacheCode.PleaseDoNotAddAgain;
+
+        var entity = input.MapTo<{className}>();
+        entity.Create(input.CurrentUser);
+        entity.Enabled = input.Enabled;
+        await repository.Insertable<{className}>(entity).ExecuteCommandAsync();
+        return AutoCacheCode.Successful;
+    }
+
+    /// <summary>
+    /// 根据ID删除{className}
+    /// </summary>
+    public async Task<double> deleteAsync({className}Input input)
+    {
+        var set = input.MapTo<{className}>();
+        repository.Tracking(set);
+        set.DeleteFlag = "Y";
+        set.Modify(input.Id,input.CurrentUser);
+        await repository.Updateable<{className}>(set).ExecuteCommandAsync();
+
+    }
+
+    /// <summary>
+    /// 更新{className}
+    /// </summary>
+    public async Task<double> ModifyAsync({className}Input input)
+    {
+        {className} set = new();
+        repository.Tracking(set);
+        input.MapTo<{className}Input,{className}>(set);
+        set.Modify(input.Id,input.CurrentUser);
+        await repository.Updateable(set).ExecuteCommandAsync();
+
+    }
+
+    /// <summary>
+    /// 分页获取所有{className}
+    /// </summary>
+    public async Task<PageEntity<IEnumerable<{className}>>> getPagelist(PageEntity<{className}Input> inputs)
+    {
+        //分页查询
+        RefAsync<int> total = 0;
+        var input = inputs.Data;
+        var data = await repository.Queryable<{className}>()
+            // .WhereIF(
+            //     !input.DatasetName.IsNullOrEmpty(),
+            //     x => x.DatasetName.Contains(input.DatasetName))
+            // .WhereIF(
+            //     true,
+            //     x => x.DeleteFlag == "N" )
+            .ToPageListAsync(inputs.PageIndex, inputs.PageSize, total);
+
+        return new PageEntity<IEnumerable<{className}>>
+        {
+            PageIndex = inputs.PageIndex,
+            Ascending = inputs.Ascending,
+            PageSize = inputs.PageSize,
+            OrderField = inputs.OrderField,
+            Total = (long)total,
+            Data = data
+        };
+    }
+
+
+}
+

@@ -1,5 +1,4 @@
-﻿
-
+﻿using System.Text.Json;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MiniExcelLibs;
 using SqlSugar;
@@ -10,6 +9,8 @@ using System.Diagnostics;
 using System.Text;
 using System.Xml.Linq;
 using testorm.Entity;
+using System.IO;
+using Microsoft.Spark.Sql.Types;
 
 namespace testorm
 {
@@ -17,7 +18,399 @@ namespace testorm
     {
         public static void Main(string[] args)
         {
-            string dns = "DSN=HiveWare;UID=root;PWD=";
+            
+        }
+    }*/
+    #region 代码生成
+    public class program
+    {
+        public static void Main(string[] args)
+        {
+            // 要生成的表
+            string tableName = "BI_CUSTOMER_FIELD";
+            // 要跳过的字段
+            string[] skipArr = new string[] { "CREATEDATE", "CREATEUSERID", "CREATEUSERNAME", "MODIFYDATE", "MODIFYUSERID", "MODIFYUSERNAME", "REMARK", "ENABLED" };
+            // 版本号
+            string version = "1.0";
+            // 文件生成地址(默认不传就是桌面)
+            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/generate";
+            // 要显示的作者
+            string author = "GPF";
+            // 需要显示的名称空间
+            string nameSpaceStr = "Generate";
+            //锦溪正式Oracle
+            var oracleConn1 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=jxbaizedb-scan1.luxshare.com.cn)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedb)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+
+            if (!Directory.Exists(filePath))
+            {
+                Directory.CreateDirectory(filePath);
+            }
+
+            // 1，连接数据库
+            SqlSugarClient client = new SqlSugarClient(new ConnectionConfig
+            {
+                ConnectionString = oracleConn1,
+                DbType = SqlSugar.DbType.Oracle,
+                IsAutoCloseConnection = true
+            });
+
+            // 2,查询表字段
+            string sql = $@"SELECT
+                              b.TABLE_NAME tableName                    --表名
+	                        , c.COLUMN_NAME columnName                  --列名
+	                        , nvl(f.COMMENTS, c.COLUMN_NAME) columnComment-- 列注释
+	                        , c.DATA_TYPE columnType                    --字段类型 varchar之类的
+                        FROM  USER_USERS a
+                        LEFT JOIN all_tables b ON a.USERNAME = b.OWNER
+                        LEFT JOIN user_tab_columns c ON b.TABLE_NAME = c.TABLE_NAME
+                        LEFT JOIN all_col_comments f ON a.USERNAME = f.OWNER AND b.TABLE_NAME = f.TABLE_NAME AND c.COLUMN_NAME = f.COLUMN_NAME
+                        WHERE b.TABLE_NAME = '{tableName}'";
+            var dt = client.Ado.GetDataTable(sql);
+
+            // 3、开始生成实体
+            string entityStr = File.ReadAllText("Template/Entity.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{tableName}", tableName);
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
+            // 开始填充实体类字段
+            StringBuilder sb = new StringBuilder();
+            for(int i = 0; i < dt.Rows.Count; i++)
+            {
+                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"]??"".ToString().ToUpper()))
+                    continue;
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///<summary>");
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///{dt.Rows[i][2].ToString()}");
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///</summary>");
+
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append("public ");
+                sb.Append(checkType(dt.Rows[i][3].ToString()));
+                sb.Append(' ');
+                sb.Append(dt.Rows[i][1].ToString());
+                sb.Append(' ');
+                sb.Append(" { set; get;} ");
+            }
+            entityStr = entityStr.Replace("{content}", sb.ToString());
+
+            var entityPath = filePath+"/"+ToPascal(tableName)+".cs";
+            /*if (!File.Exists(entityPath))
+            {
+                File.Create(entityPath);
+            }*/
+            File.WriteAllText(entityPath, entityStr.ToString());
+            // 4、开始生成Controller
+            entityStr = File.ReadAllText("Template/Controller.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
+            var controllerPath = filePath + "/" + ToPascal(tableName) + "Controller.cs";
+            if (!File.Exists(entityPath))
+            {
+                File.Create(entityPath);
+            }
+            File.WriteAllText(controllerPath, entityStr.ToString());
+            // 5、开始生成 IService
+            entityStr = File.ReadAllText("Template/IService.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
+            var IServicePath = filePath + "/I" + ToPascal(tableName) + "Services.cs";
+            if (!File.Exists(entityPath))
+            {
+                File.Create(entityPath);
+            }
+            File.WriteAllText(IServicePath, entityStr.ToString());
+            // 6、开始生成 Service
+            entityStr = File.ReadAllText("Template/Service.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
+            var ServicePath = filePath + "/" + ToPascal(tableName) + "Services.cs";
+            if (!File.Exists(entityPath))
+            {
+                File.Create(entityPath);
+            }
+            File.WriteAllText(ServicePath, entityStr.ToString());
+        }
+
+        private static string ToPascal(string str)
+        {
+            string[] split = str.Split(new char[] { '/', ' ', '_', '.' });
+            string newStr = "";
+            foreach (var item in split)
+            {
+                char[] chars = item.ToCharArray();
+                chars[0] = char.ToUpper(chars[0]);
+                for (int i = 1; i < chars.Length; i++)
+                {
+                    chars[i] = char.ToLower(chars[i]);
+                }
+                newStr += new string(chars);
+            }
+            return newStr;
+        }
+
+        private static string checkType(string? value)
+        {
+            switch (value?? "VARCHAR2".ToUpper())
+            {
+                case "VARCHAR2":
+                case "VARCHAR":
+                case "CHAR":
+                case "CLOB":
+                    return "string";
+                case "DATE":
+                case "TIME":
+                case "TIMESTAMP":
+                    return "Date";
+                case "DECIMAL":
+                case "DOUBLE PRECISION":
+                case "NUMBER":
+                    return "decimal";
+                case "INTEGER":
+                    return "int";
+                case "LONG":
+                    return "long";
+                default:
+                    return "string";
+            }
+        }
+    }
+    #endregion
+    #region c# 连接 starRock
+    /*public class program
+    {
+        [Obsolete]
+        public static void Main(string[] args)
+        {
+            string dns = "Server=10.32.44.207;User ID=root;Password=;port=8000;Database=Demo";
+            SqlSugarClient Db = new SqlSugarClient(new ConnectionConfig()
+            {
+                ConnectionString = dns,
+                DbType = SqlSugar.DbType.MySqlConnector,
+                IsAutoCloseConnection = true,
+            });
+            Console.WriteLine("创建链接");
+            var dt2 = Db.Ado.GetDataTable("SELECT *  FROM test.doris_sink");
+            Console.WriteLine("获取数据成功: 数量为" + dt2.Rows.Count);
+
+        }
+    }*/
+    #endregion
+    #region 连接sqllite
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            string connect = "data source=C:\\Users\\Administrator\\AppData\\Local\\Packages\\cf906e41-910f-41ab-9cae-5a814460689d_9g7jfgbsde0p2\\LocalState\\sqlite.db";
+            SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
+            {
+                ConfigId = "A",
+                ConnectionString = connect,
+                DbType = SqlSugar.DbType.Sqlite
+            });
+            var dt = sqlSugarClient.Ado.GetDataTable("PRAGMA table_info(schedulework)");
+            Console.WriteLine(dt.Rows.Count);
+        }
+    }*/
+    #endregion
+    #region 调用控制台项目，并操作控制台黑窗口
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            //实例化一个进程类
+            Process cmd = new Process();
+
+            //获得系统信息，使用的是 systeminfo.exe 这个控制台程序
+            cmd.StartInfo.FileName = "cmd.exe";
+
+            //将cmd的标准输入和输出全部重定向到.NET的程序里
+
+            cmd.StartInfo.UseShellExecute = false; //此处必须为false否则引发异常
+
+            cmd.StartInfo.RedirectStandardInput = true; //标准输入
+            cmd.StartInfo.RedirectStandardOutput = true; //标准输出
+            cmd.StartInfo.RedirectStandardError = true;
+
+            //不显示命令行窗口界面
+            cmd.StartInfo.CreateNoWindow = true;
+            cmd.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+
+             cmd.Start(); //启动进程
+            Console.WriteLine(readToEnd(cmd));
+
+            cmd.StandardInput.Write("dotnet C:\\Users\\Administrator\\Desktop\\publish2\\testorm.dll\r\n");
+            Console.WriteLine(readToEnd(cmd));
+
+            cmd.StandardInput.Write("1.86\r\n");
+            Console.WriteLine(readToEnd(cmd));
+
+            cmd.StandardInput.Write("75\r\n");
+            Console.WriteLine(readToEnd(cmd));
+
+            cmd.StandardInput.Write("\r\n");
+            Console.WriteLine(readToEnd(cmd));
+
+            cmd.WaitForExit();//等待控制台程序执行完成
+            cmd.Close();//关闭该进程
+        }
+
+        private static string readToEnd(Process cmd)
+        {
+            string cmdText = "";
+            var charNum = cmd.StandardOutput.Peek();
+            int tmp;
+            while (true)
+            {
+                if (cmd.StandardInput.)
+                {
+                    Console.WriteLine("结束");
+                }
+                cmdText = string.Concat(cmdText, (char)cmd.StandardOutput.Read());
+                int length = cmdText.Length;
+            }
+        }
+    }*/
+    #endregion
+    #region 控制台输入
+    /*class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("请输入您的身高 单位(米) 例如1.68");
+            double height = double.Parse(Console.ReadLine());
+            Console.WriteLine("请输入您的体重 单位(kg) 例如60");
+            int weight = int.Parse(Console.ReadLine());
+
+            double exponent = weight / (height * height);
+
+            Console.WriteLine("您的身高{0} 体重{0} BMI{0}", height, weight, exponent);
+
+
+            if (exponent < 18.5)
+            {
+                Console.WriteLine("其中过轻");
+            }
+            else if (exponent >= 18.5 && exponent <= 24.9)
+            {
+                Console.WriteLine("正常范围");
+            }
+            else if (exponent >= 24.9 && exponent < 29.9)
+            {
+                Console.WriteLine("体重过重");
+            }
+            else if (exponent >= 29.9)
+            {
+                Console.WriteLine("肥胖");
+            }
+            Console.ReadLine();
+        }
+    }*/
+    #endregion
+    #region c sharp 链接 clickHouse
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            string connect = "Compress=True;CheckCompressedHash=False;Compressor=lz4;Host=10.32.44.215;Port=8123;User=default;Password=;SocketTimeout=600000;Database=datasets;";
+            SqlSugarClient client = new SqlSugarClient(new ConnectionConfig
+            {
+                IsAutoCloseConnection = true,
+                ConnectionString = connect,
+                DbType = SqlSugar.DbType.ClickHouse
+            });
+            var dt = client.Ado.GetDataTable("select * from datasets.ontime limit 1,30");
+            var json = JsonConvert.SerializeObject(dt);
+            Console.WriteLine(dt.Rows.Count);
+        }
+    }*/
+    #endregion
+    #region 链接spark(失败)
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            // Create Spark session
+            SparkSession spark =
+                SparkSession
+                    .Builder()
+                    .AppName("word_count_sample")
+                    .GetOrCreate();
+
+            // Create initial DataFrame
+            string filePath = args[0];
+            DataFrame dataFrame = spark.Read().Text(filePath);
+
+            //Count words
+            DataFrame words =
+                dataFrame
+                    .Select(Split(Col("value"), " ").Alias("words"))
+                    .Select(Explode(Col("words")).Alias("word"))
+                    .GroupBy("word")
+                    .Count()
+                    .OrderBy(Col("count").Desc());
+
+            // Display results
+            words.Show();
+
+            // Stop Spark session
+            spark.Stop();
+        }
+    }*/
+    #endregion
+    #region 链接spark1（失败）
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            var sparkSample = SparkSession.Builder().Config("hive.metastore.uris", "thrift://10.32.44.213:9083").GetOrCreate();//.Master("local").AppName("Spark to Hive").Config("hive.metastore.uris", "thrift://10.32.44.213:9083").EnableHiveSupport().GetOrCreate();
+            var df = sparkSample.Read().Json("people.json");
+            df.Show();
+
+            string connection_url = "jdbc:hive2://10.32.44.213:10003";
+            string dbtable = "<database table to access>";
+            string user = "admin";
+            string password = "<Login user password>";
+
+            var jdbcdf = sparkSample.Read()
+                .Format("jdbc")
+                .Option("driver", "org.apache.hive.jdbc.HiveDrive")
+                .Option("url", connection_url)
+                //.Option("dbtable", dbtable)
+                .Option("user", user).Load();
+                //.Option("password", password).Load();
+            jdbcdf.Show(); // Displays the content of the SQL table as a DataFrame
+
+        }
+    }*/
+    #endregion
+    #region 链接hive ODBC
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            string dns = "DSN=sparkM;UID=;PWD=";
             SqlSugarClient Db = new SqlSugarClient(new ConnectionConfig()
             {
                 ConnectionString = dns,
@@ -25,15 +418,15 @@ namespace testorm
                 IsAutoCloseConnection = true,
             });
             Console.WriteLine("创建链接");
-            var dt2 = Db.Ado.GetDataTable("select *from employee");
-            Console.WriteLine("获取数据成功: 数量为"+dt2.Rows.Count);
+            // show tables
+            var dt2 = Db.Ado.GetDataTable("select * from test.t1 limit 0 ,30 ");
+            Console.WriteLine("获取数据成功: 数量为" + dt2.Rows.Count);
 
         }
     }*/
-
-    /*/// <summary>
-    /// sqlsugar 对象映射错误检测
-    /// </summary>
+    #endregion
+    #region sqlsugar 对象映射错误检测
+    /*
     public class Program
     {
         public static void Main(string[] args)
@@ -54,18 +447,19 @@ namespace testorm
             sqlSugarClient.Dispose();
         }
     }*/
-
-    /*/// <summary>
-    /// Oracle to Oracle
-    /// </summary>
-    public class Program
+    #endregion
+    #region Oracle to Oracle 转移数据
+    /*public class Program
     {
         public static void Main(string[] args)
         {
+            string tableName = "AUTO_TURN";
             //锦溪正式Oracle
             var oracleConn1 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=jxbaizedb-scan1.luxshare.com.cn)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedb)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            // 越南正式oracle
+            var oracleConn2 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST =vnc1pb1-scan1.luxshare.com.cn)(PORT = 1521))(CONNECT_DATA=(SERVICE_NAME=baizedb))) ;Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
             // 锦溪测试Oracle
-            var oracleConn2 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.32.44.54)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedev)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            //var oracleConn2 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.32.44.54)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedev)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
             SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
             {
                 ConfigId = "A",
@@ -73,8 +467,8 @@ namespace testorm
                 DbType = SqlSugar.DbType.Oracle
             });
 
-            // 获取原始表数据
-            var sql = $"select * from AUTO_REPORT_EXCEL";
+            // 获取原始表数据  OFFSET 60 ROWS FETCH NEXT 30 ROWS ONLY
+            var sql = $"select * from {tableName} ";
             var dt = sqlSugarClient.Ado.GetDataTable(sql);
             sqlSugarClient.Close();
             sqlSugarClient.Dispose();
@@ -87,26 +481,25 @@ namespace testorm
             });
             //int a = sqlSugarClient2.Ado.ExecuteCommand(tableCreat.ToString());
 
-            sqlSugarClient2.Fastest<System.Data.DataTable>().AS("AUTO_REPORT_EXCEL").BulkCopy(dt);
+            sqlSugarClient2.Fastest<System.Data.DataTable>().AS(tableName).BulkCopy(dt);
             sqlSugarClient2.Close();
             sqlSugarClient2.Dispose();
         }
     }*/
-
-    /// <summary>
-    /// 数据库搬迁从mysql 到 oracle
-    /// </summary>
-    public class Program
+    #endregion
+    #region 数据库搬迁从mysql 到 oracle
+    /*public class Program
     {
         public static void Main(string[] args)
         {
-            // m
-            string tableName = args[0];
-            bool createFlag = true;
+            // 
+            string tableName = "auto_report";
+            bool createFlag = false;
+            bool dataFlag = true;
 
-            var mysqlConn = "Server=10.58.2.21;User ID=report01;Password=Baize.2022;port=3306;Database=aj_report;CharSet=utf8;pooling=true;SslMode=None;";
+            var mysqlConn = "Server=10.32.44.78;User ID=report01;Password=Baize.2022;port=3306;Database=aj_report;CharSet=utf8;pooling=true;SslMode=None;";
             // 锦溪正式Oracle
-            var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.57.12.13)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=dshbaize)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST =vnc1pb1-scan1.luxshare.com.cn)(PORT = 1521))(CONNECT_DATA=(SERVICE_NAME=baizedb))) ;Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
             // 锦溪测试Oracle
             //var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.32.44.54)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedev)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
             SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
@@ -205,8 +598,8 @@ namespace testorm
                 }
             }
             //int a = sqlSugarClient2.Ado.ExecuteCommand(tableCreat.ToString());
-
-            sqlSugarClient2.Fastest<System.Data.DataTable>().AS(tableName.ToUpper()).BulkCopy(dt);
+            if (dataFlag)
+                sqlSugarClient2.Fastest<System.Data.DataTable>().AS(tableName.ToUpper()).BulkCopy(dt);
             sqlSugarClient2.Close();
             sqlSugarClient2.Dispose();
         }
@@ -281,11 +674,10 @@ namespace testorm
             }
             return res;
         }
-    }
-
-    /*/// <summary>
-    /// 动态语法执行
-    /// </summary>
+    }*/
+    #endregion
+    #region 动态语法执行
+    /*
     public class Program
     {
         static Action<string> Write = Console.WriteLine;
@@ -306,10 +698,9 @@ namespace testorm
             }
         }
     }*/
-
-    /*/// <summary>
-    /// miniExcel执行查询
-    /// </summary>
+    #endregion
+    #region miniExcel执行查询
+    /*
     internal class Program
     {
         public static void Main(string[] args)
@@ -345,10 +736,9 @@ namespace testorm
             Console.WriteLine($"耗时:{sw.ElapsedMilliseconds / 1000}");
         }
     }*/
-
-    /*/// <summary>
-    /// 卡控方法的执行时间
-    /// </summary>
+    #endregion
+    #region 卡控方法的执行时间
+    /*
     internal class Program
     {
         public static void Main(string[] args)
@@ -392,10 +782,9 @@ namespace testorm
             return true;
         }
     }*/
-
-    /*/// <summary>
-    /// 正则判断
-    /// </summary>
+    #endregion
+    #region 正则判断
+    /*
     internal class Program
     {
         static DataTable dt = new DataTable();
@@ -507,5 +896,5 @@ namespace testorm
 
 
     }*/
-
+    #endregion
 }

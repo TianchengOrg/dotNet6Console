@@ -1,0 +1,103 @@
+﻿using Baize.Core.Models;
+using Baize.Entities.AutoReportCenter.Cache;
+using Baize.Entities.AutoReportCenter.Entity;
+using Baize.Entities.AutoReportCenter.Input;
+using Baize.Entities.AutoReportCenter.Response;
+using Baize.Services.AutoReportCenter.IService;
+using MagicOnion;
+using Microsoft.AspNetCore.Mvc;
+using SQLBuilder.Core.Repositories;
+
+namespace {namespace};
+
+/// <summary>
+/// 描述：{description}
+/// 作者：{auther}
+/// 创建日期：{createDate}
+/// 版本：{version}
+/// </summary>
+
+[ApiVersion("1")]
+[ApiExplorerSettings(GroupName = "autoreportcenter")]
+[Route("api/autoreportcenter/anonymous/v{version:apiVersion}/[controller]/[action]")]
+public class {className}Controller:BaseController
+{
+    /// <summary>
+    /// {className} 服务接口
+    /// </summary>
+    private readonly I{className}Services service;
+
+    /// <summary>
+    /// {className} 构造函数
+    /// </summary>
+    public BIDataSetController(I{className}Services service)
+    {
+        this.service = service;
+    }
+
+    /// <summary>
+    /// {className} 添加
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [ActionName("insert")]
+    public async Task<ResponseResult> insert({className}tInput input)
+    {
+        input.CurrentUser = this.CurrentUser;
+        var result = await service.addAsync(input);
+        if (result == AutoCacheCode.Successful)
+            return Success("插入成功！");
+        else if(result == AutoCacheCode.PleaseDoNotAddAgain)
+            return Error("重复插入！", result);
+        else
+            return Error("插入失败！",result);
+    }
+
+    /// <summary>
+    /// 删除 {className} 信息
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [ActionName("delete")]
+    public async Task<ResponseResult> deleteAsync({className}Input input)
+    {
+        input.CurrentUser = this.CurrentUser;
+        var result = await service.deleteAsync(input);
+        if (result == AutoCacheCode.Successful)
+            return Success("删除成功！");
+        else
+            return Error(result.ToString());
+    }
+
+    /// <summary>
+    /// 更新 {className} 信息
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [ActionName("modify")]
+    public async Task<ResponseResult> modifyAsync({className}Input input)
+    {
+        input.CurrentUser = this.CurrentUser;
+        var result = await service.ModifyAsync(input);
+        if (result == AutoCacheCode.Successful)
+            return Success(result.ToString());
+        else
+            return Error(result.ToString());
+    }
+
+    /// <summary>
+    /// {className}  列表
+    /// </summary>
+    [HttpPost]
+    [ActionName("getPagelist")]
+    public async Task<ResponseResult<PageEntity<IEnumerable<{className}>>>> getPagelist(PageEntity<{className}Input> inputs)
+    {
+        return Success(await service.getPagelist(inputs));
+    }
+
+    
+}
+

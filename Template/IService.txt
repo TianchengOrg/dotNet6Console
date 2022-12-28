@@ -1,0 +1,37 @@
+﻿
+using Baize.Core.Interfaces;
+using Baize.Core.Models;
+using Baize.Entities.AutoReportCenter.Entity;
+using Baize.Entities.AutoReportCenter.Input;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace {namespace};
+
+/// <summary>
+/// 描述：{description}
+/// 作者：{auther}
+/// 创建日期：{createDate}
+/// 版本：{version}
+/// </summary>
+
+public interface I{className}Services: IDependency
+{
+    /// <summary>
+    /// 添加新的{className}
+    /// </summary>
+    Task<double> addAsync({className}Input input);
+    /// <summary>
+    /// 根据ID删除{className}
+    /// </summary>
+    Task<double> deleteAsync({className}Input input);
+    /// <summary>
+    /// 更新{className}
+    /// </summary>
+    Task<double> ModifyAsync({className}Input input);
+    /// <summary>
+    /// 分页获取所有{className}
+    /// </summary>
+    Task<PageEntity<IEnumerable<{className}>>> getPagelist(PageEntity<{className}Input> inputs);
+}
+
