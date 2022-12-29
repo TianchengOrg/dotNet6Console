@@ -16,6 +16,13 @@ using System.Threading.Tasks;
 
 namespace {namespace};
 
+/// <summary>
+/// 描述：{description}
+/// 作者：{auther}
+/// 创建日期：{createDate}
+/// 版本：{version}
+/// </summary>
+
 public class {className}Services : I{className}Services
 {
     /// <summary>
@@ -60,7 +67,7 @@ public class {className}Services : I{className}Services
         set.DeleteFlag = "Y";
         set.Modify(input.Id,input.CurrentUser);
         await repository.Updateable<{className}>(set).ExecuteCommandAsync();
-
+        return AutoCacheCode.Successful;
     }
 
     /// <summary>
@@ -73,7 +80,7 @@ public class {className}Services : I{className}Services
         input.MapTo<{className}Input,{className}>(set);
         set.Modify(input.Id,input.CurrentUser);
         await repository.Updateable(set).ExecuteCommandAsync();
-
+        return AutoCacheCode.Successful;
     }
 
     /// <summary>

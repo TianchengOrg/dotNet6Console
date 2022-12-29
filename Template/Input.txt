@@ -1,0 +1,19 @@
+﻿using Baize.Core.Models;
+using System;
+
+namespace {namespace};
+
+/// <summary>
+/// 描述：{description}
+/// 作者：{auther}
+/// 创建日期：{createDate}
+/// 版本：{version}
+/// </summary>
+
+public class {className}Input : BaseInput
+{
+    ///<summary>
+    ///编码
+    ///</summary>
+    public string Id { set; get; }
+}

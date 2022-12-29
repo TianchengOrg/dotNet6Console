@@ -29,7 +29,7 @@ namespace testorm
             // 要生成的表
             string tableName = "BI_CUSTOMER_FIELD";
             // 要跳过的字段
-            string[] skipArr = new string[] { "CREATEDATE", "CREATEUSERID", "CREATEUSERNAME", "MODIFYDATE", "MODIFYUSERID", "MODIFYUSERNAME", "REMARK", "ENABLED" };
+            string[] skipArr = new string[] {"ID", "CREATEDATE", "CREATEUSERID", "CREATEUSERNAME", "MODIFYDATE", "MODIFYUSERID", "MODIFYUSERNAME", "REMARK", "ENABLED" };
             // 版本号
             string version = "1.0";
             // 文件生成地址(默认不传就是桌面)
@@ -97,17 +97,13 @@ namespace testorm
                 sb.Append("public ");
                 sb.Append(checkType(dt.Rows[i][3].ToString()));
                 sb.Append(' ');
-                sb.Append(dt.Rows[i][1].ToString());
+                sb.Append(ToPascal(dt.Rows[i][1]?.ToString()??""));
                 sb.Append(' ');
                 sb.Append(" { set; get;} ");
             }
             entityStr = entityStr.Replace("{content}", sb.ToString());
 
             var entityPath = filePath+"/"+ToPascal(tableName)+".cs";
-            /*if (!File.Exists(entityPath))
-            {
-                File.Create(entityPath);
-            }*/
             File.WriteAllText(entityPath, entityStr.ToString());
             // 4、开始生成Controller
             entityStr = File.ReadAllText("Template/Controller.txt");
@@ -118,10 +114,6 @@ namespace testorm
             entityStr = entityStr.Replace("{version}", version);
             entityStr = entityStr.Replace("{className}", ToPascal(tableName));
             var controllerPath = filePath + "/" + ToPascal(tableName) + "Controller.cs";
-            if (!File.Exists(entityPath))
-            {
-                File.Create(entityPath);
-            }
             File.WriteAllText(controllerPath, entityStr.ToString());
             // 5、开始生成 IService
             entityStr = File.ReadAllText("Template/IService.txt");
@@ -132,10 +124,6 @@ namespace testorm
             entityStr = entityStr.Replace("{version}", version);
             entityStr = entityStr.Replace("{className}", ToPascal(tableName));
             var IServicePath = filePath + "/I" + ToPascal(tableName) + "Services.cs";
-            if (!File.Exists(entityPath))
-            {
-                File.Create(entityPath);
-            }
             File.WriteAllText(IServicePath, entityStr.ToString());
             // 6、开始生成 Service
             entityStr = File.ReadAllText("Template/Service.txt");
@@ -146,11 +134,17 @@ namespace testorm
             entityStr = entityStr.Replace("{version}", version);
             entityStr = entityStr.Replace("{className}", ToPascal(tableName));
             var ServicePath = filePath + "/" + ToPascal(tableName) + "Services.cs";
-            if (!File.Exists(entityPath))
-            {
-                File.Create(entityPath);
-            }
             File.WriteAllText(ServicePath, entityStr.ToString());
+            // 6、开始生成 Input
+            entityStr = File.ReadAllText("Template/Input.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
+            var InputPath = filePath + "/" + ToPascal(tableName) + "Input.cs";
+            File.WriteAllText(InputPath, entityStr.ToString());
         }
 
         private static string ToPascal(string str)

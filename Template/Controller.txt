@@ -30,7 +30,7 @@ public class {className}Controller:BaseController
     /// <summary>
     /// {className} 构造函数
     /// </summary>
-    public BIDataSetController(I{className}Services service)
+    public {className}Controller(I{className}Services service)
     {
         this.service = service;
     }
@@ -42,7 +42,7 @@ public class {className}Controller:BaseController
     /// <returns></returns>
     [HttpPost]
     [ActionName("insert")]
-    public async Task<ResponseResult> insert({className}tInput input)
+    public async Task<ResponseResult> insert({className}Input input)
     {
         input.CurrentUser = this.CurrentUser;
         var result = await service.addAsync(input);
