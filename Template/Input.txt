@@ -1,4 +1,4 @@
-﻿using Baize.Core.Models;
+﻿using Bi.Core.Models;
 using System;
 
 namespace {namespace};
@@ -12,8 +12,5 @@ namespace {namespace};
 
 public class {className}Input : BaseInput
 {
-    ///<summary>
-    ///编码
-    ///</summary>
-    public string Id { set; get; }
+{content}
 }

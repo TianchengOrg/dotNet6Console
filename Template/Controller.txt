@@ -1,12 +1,10 @@
-﻿using Baize.Core.Models;
-using Baize.Entities.AutoReportCenter.Cache;
-using Baize.Entities.AutoReportCenter.Entity;
-using Baize.Entities.AutoReportCenter.Input;
-using Baize.Entities.AutoReportCenter.Response;
-using Baize.Services.AutoReportCenter.IService;
-using MagicOnion;
+﻿using Bi.Core.Models;
+using Bi.Core.Const;
+using Bi.Entities.Entity;
+using Bi.Entities.Input;
+using Bi.Entities.Response;
+using Bi.Services.IService;
 using Microsoft.AspNetCore.Mvc;
-using SQLBuilder.Core.Repositories;
 
 namespace {namespace};
 
@@ -18,8 +16,8 @@ namespace {namespace};
 /// </summary>
 
 [ApiVersion("1")]
-[ApiExplorerSettings(GroupName = "autoreportcenter")]
-[Route("api/autoreportcenter/anonymous/v{version:apiVersion}/[controller]/[action]")]
+[ApiExplorerSettings(GroupName = "bireport")]
+[Route("[controller]/[action]")]
 public class {className}Controller:BaseController
 {
     /// <summary>
@@ -42,13 +40,13 @@ public class {className}Controller:BaseController
     /// <returns></returns>
     [HttpPost]
     [ActionName("insert")]
-    public async Task<ResponseResult> insert({className}Input input)
+    public async Task<ResponseResult> insertAsync({className}Input input)
     {
         input.CurrentUser = this.CurrentUser;
         var result = await service.addAsync(input);
-        if (result == AutoCacheCode.Successful)
+        if (result == BaseErrorCode.Successful)
             return Success("插入成功！");
-        else if(result == AutoCacheCode.PleaseDoNotAddAgain)
+        else if(result == BaseErrorCode.PleaseDoNotAddAgain)
             return Error("重复插入！", result);
         else
             return Error("插入失败！",result);
@@ -65,7 +63,7 @@ public class {className}Controller:BaseController
     {
         input.CurrentUser = this.CurrentUser;
         var result = await service.deleteAsync(input);
-        if (result == AutoCacheCode.Successful)
+        if (result == BaseErrorCode.Successful)
             return Success("删除成功！");
         else
             return Error(result.ToString());
@@ -82,7 +80,7 @@ public class {className}Controller:BaseController
     {
         input.CurrentUser = this.CurrentUser;
         var result = await service.ModifyAsync(input);
-        if (result == AutoCacheCode.Successful)
+        if (result == BaseErrorCode.Successful)
             return Success(result.ToString());
         else
             return Error(result.ToString());
@@ -98,6 +96,34 @@ public class {className}Controller:BaseController
         return Success(await service.getPagelist(inputs));
     }
 
+    /// <summary>
+    /// {className}  查询全部列表
+    /// </summary>
+    [HttpPost]
+    [ActionName("getList")]
+    public async Task<ResponseResult<IEnumerable<{className}>>> getList({className}Input input)
+    {
+        return Success(await service.getList(input));
+    }
+
+    /// <summary>
+    /// 获取 {className}  单个
+    /// </summary>
+    [HttpPost]
+    [ActionName("getEntity")]
+    public async Task<ResponseResult<{className}>> getEntity({className}Input input)
+    {
+        var result = await service.getEntity(input);
+        if(result.Item1 == BaseErrorCode.Successful)
+        {
+            return Success(result.Item2);
+        }
+        else
+        {
+            return Error("查询失败", result.Item2);
+        }
+        
+    }
     
 }
 

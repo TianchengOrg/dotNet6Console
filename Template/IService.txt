@@ -1,8 +1,7 @@
-﻿
-using Baize.Core.Interfaces;
-using Baize.Core.Models;
-using Baize.Entities.AutoReportCenter.Entity;
-using Baize.Entities.AutoReportCenter.Input;
+﻿using Bi.Core.Interfaces;
+using Bi.Core.Models;
+using Bi.Entities.Entity;
+using Bi.Entities.Input;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -33,5 +32,13 @@ public interface I{className}Services: IDependency
     /// 分页获取所有{className}
     /// </summary>
     Task<PageEntity<IEnumerable<{className}>>> getPagelist(PageEntity<{className}Input> inputs);
+    /// <summary>
+    /// 获取所有{className}
+    /// </summary>
+    Task<IEnumerable<{className}>> getList({className}Input input);
+    /// <summary>
+    /// 根据ID获取单个{className}
+    /// </summary>
+    Task<(double,{className})> getEntity({className}Input input);
 }
 

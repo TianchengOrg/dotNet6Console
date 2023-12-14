@@ -1,0 +1,53 @@
+﻿namespace {namespace};
+
+/// <summary>
+/// 描述：{description}
+/// 作者：{auther}
+/// 创建日期：{createDate}
+/// 版本：{version}
+/// </summary>
+
+[MessagePackObject(true)]
+public class PageEntity<T>
+{
+    /// <summary>
+    /// 排序字段
+    /// </summary>
+    [Required]
+    public string OrderField { get; set; }
+
+    /// <summary>
+    /// 是否升序
+    /// </summary>
+    [Required]
+    public bool Ascending { get; set; }
+
+    /// <summary>
+    /// 分页大小
+    /// </summary>
+    [Required]
+    [Range(1, int.MaxValue)]
+    public int PageSize { get; set; } = 30;
+
+    /// <summary>
+    /// 当前页码
+    /// </summary>
+    [Required]
+    [Range(1, int.MaxValue)]
+    public int PageIndex { get; set; }
+
+    /// <summary>
+    /// 总条数，不需要填写
+    /// </summary>
+    public long Total { get; set; }
+
+    /// <summary>
+    /// 总页数，不需要填写
+    /// </summary>
+    public int TotalPage => (int)(Total / (PageSize == 0 ? 30 : PageSize) + (Total % (PageSize == 0 ? 30 : PageSize) == 0 ? 0 : 1));
+
+    /// <summary>
+    /// 数据
+    /// </summary>
+    public T Data { get; set; }
+}

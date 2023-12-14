@@ -11,6 +11,8 @@ using System.Xml.Linq;
 using testorm.Entity;
 using System.IO;
 using Microsoft.Spark.Sql.Types;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace testorm
 {
@@ -21,25 +23,196 @@ namespace testorm
             
         }
     }*/
-    #region 代码生成
+    #region 定时器
+    /*class Scheduler
+    {
+        private Timer timer;
+
+        public Scheduler()
+        {
+            // 计算当前时间到下一个小时的55分之间的时间间隔
+            DateTime now = DateTime.Now;
+            TimeSpan timeToNextReminder = new TimeSpan(1, 0, 0) - TimeSpan.FromSeconds(now.Minute * 60 + now.Second) - TimeSpan.FromMinutes(55);
+
+            // 创建定时器，设置回调函数和时间间隔
+            timer = new Timer(Alert, null, timeToNextReminder, TimeSpan.FromHours(1));
+        }
+
+        private void Alert(object state)
+        {
+            // 在每小时的55分进行提醒
+            DateTime now = DateTime.Now;
+            if (now.Minute == 55)
+            {
+                Console.WriteLine("提醒：每小时的55分");
+                // 在这里编写相应的提醒逻辑或调用其它方法
+            }
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Scheduler scheduler = new Scheduler();
+
+            // 保持主线程运行，避免程序退出
+            Console.ReadLine();
+        }
+    }*/
+    #endregion
+    #region datatable 排序
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            DataTable dataTable = new DataTable();
+
+            // 假设order列的数据类型为整数，stepname列的数据类型为字符串，createdate列的数据类型为日期时间
+            dataTable.Columns.Add("order", typeof(int));
+            dataTable.Columns.Add("stepname", typeof(string));
+            dataTable.Columns.Add("createdate", typeof(DateTime));
+
+            // 添加数据到dataTable...
+            dataTable.Rows.Add(1, "StepB", DateTime.Now.AddHours(-1));
+            dataTable.Rows.Add(1, "StepB", DateTime.Now);
+            dataTable.Rows.Add(1, "StepA", DateTime.Now);
+            dataTable.Rows.Add(3, "StepC", DateTime.Now);
+            dataTable.Rows.Add(2, "StepB", DateTime.Now);
+
+            // 自定义的Comparer，用于对stepname列进行特定顺序排序
+            
+
+            // 排序规则：order列升序，stepname列按照指定数组顺序排序，createdate列降序
+            string[] arr = { "StepB", "StepA", "StepC"  };
+            DataTable sortedTable = dataTable.AsEnumerable()
+            .OrderBy(row => row.Field<int>("order"))
+
+            .ThenBy(row => Array.IndexOf(arr, row.Field<string>("stepname")))
+
+            .ThenByDescending(row => row.Field<DateTime>("createdate"))
+
+            .CopyToDataTable();
+            Console.WriteLine(sortedTable.Rows.Count);
+        }
+    }*/
+    #endregion
+    #region 异步执行process
+    /*public class Program
+    {
+        static Process process;
+        static CancellationTokenSource tokenSource;
+
+        static void Main(string[] args)
+        {
+            tokenSource = new CancellationTokenSource();
+            Console.CancelKeyPress += (sender, eventArgs) =>
+            {
+                eventArgs.Cancel = true;
+                tokenSource.Cancel();
+            };
+
+            Task.Run(async () => await StartProcessAsync(tokenSource.Token));
+
+            while (true)
+            {
+                Console.WriteLine("Main thread is running...");
+                Thread.Sleep(1000);
+            }
+        }
+
+        static async Task StartProcessAsync(CancellationToken cancellationToken)
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "java",
+                Arguments = "-jar C:\\Users\\12850950\\Desktop\\jar\\sparkExecuter-1.0.0.jar",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false
+            };
+            process = new Process
+            {
+                StartInfo = startInfo,
+                EnableRaisingEvents = true
+            };
+            process.Exited += (s, e) =>
+            {
+                Console.WriteLine("The process exited with code " + process.ExitCode);
+                // automatically restart the process if it exits unexpectedly
+                if (!cancellationToken.IsCancellationRequested && process.ExitCode != 0)
+                {
+                    Console.WriteLine("Restarting the process...");
+                    Task.Run(async () => await StartProcessAsync(cancellationToken));
+                }
+            };
+
+            try
+            {
+                Console.WriteLine("Starting the process...");
+                process.Start();
+                var reader = process.StandardOutput;
+                while (!reader.EndOfStream)
+                {
+                    Console.WriteLine(reader.ReadLine());
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error starting the process: " + ex.Message);
+                tokenSource.Cancel();
+            }
+
+            await Task.CompletedTask;
+        }
+    }*/
+    #endregion
+    #region c# 调用java接口下载csv文件
+    /*public class program
+    {
+        public static async Task Main(string[] args)
+        {
+            var httpClient = new HttpClient();
+            var requestUri = "your_url";
+            var content = new StringContent(JsonConvert.SerializeObject(new
+            {
+                // input参数是您自定义的参数，根据您的要求添加至请求体中
+                // ...
+            }), Encoding.UTF8, "application/json");
+
+            var responseStream = await(await httpClient.PostAsync(requestUri, content)).Content.ReadAsStreamAsync();
+
+            using (var fileStream = new FileStream("result.csv", FileMode.Create, FileAccess.Write))
+            {
+                byte[] buffer = new byte[8 * 1024];
+                int len;
+                while ((len = await responseStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer, 0, len);
+                }
+            }
+        }
+    }*/
+    #endregion
+    #region 代码生成sqlserver
     public class program
     {
         public static void Main(string[] args)
         {
             // 要生成的表
-            string tableName = "BI_CUSTOMER_FIELD";
+            string tableName = "bi_article";
             // 要跳过的字段
-            string[] skipArr = new string[] {"ID", "CREATEDATE", "CREATEUSERID", "CREATEUSERNAME", "MODIFYDATE", "MODIFYUSERID", "MODIFYUSERNAME", "REMARK", "ENABLED" };
+            string[] skipArr = new string[] { "ID", "CREATEDATE", "CREATEUSERID", "CREATEUSERNAME", "MODIFYDATE", "MODIFYUSERID", "MODIFYUSERNAME", "REMARK", "ENABLED" };
             // 版本号
-            string version = "1.0";
+            string version = "1.1";
             // 文件生成地址(默认不传就是桌面)
             string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/generate";
             // 要显示的作者
             string author = "GPF";
             // 需要显示的名称空间
-            string nameSpaceStr = "Generate";
+            string nameSpaceStr = "Bi";
             //锦溪正式Oracle
-            var oracleConn1 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=jxbaizedb-scan1.luxshare.com.cn)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedb)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            var sqlserverConn1 = "Server=192.168.1.25;DataBase=bireport;User ID=sa;Pwd=Passw0rd";
 
             if (!Directory.Exists(filePath))
             {
@@ -49,22 +222,17 @@ namespace testorm
             // 1，连接数据库
             SqlSugarClient client = new SqlSugarClient(new ConnectionConfig
             {
-                ConnectionString = oracleConn1,
-                DbType = SqlSugar.DbType.Oracle,
+                ConnectionString = sqlserverConn1,
+                DbType = SqlSugar.DbType.SqlServer,
                 IsAutoCloseConnection = true
             });
 
             // 2,查询表字段
-            string sql = $@"SELECT
-                              b.TABLE_NAME tableName                    --表名
-	                        , c.COLUMN_NAME columnName                  --列名
-	                        , nvl(f.COMMENTS, c.COLUMN_NAME) columnComment-- 列注释
-	                        , c.DATA_TYPE columnType                    --字段类型 varchar之类的
-                        FROM  USER_USERS a
-                        LEFT JOIN all_tables b ON a.USERNAME = b.OWNER
-                        LEFT JOIN user_tab_columns c ON b.TABLE_NAME = c.TABLE_NAME
-                        LEFT JOIN all_col_comments f ON a.USERNAME = f.OWNER AND b.TABLE_NAME = f.TABLE_NAME AND c.COLUMN_NAME = f.COLUMN_NAME
-                        WHERE b.TABLE_NAME = '{tableName}'";
+            string sql = $@"select b.name tablename,a.name columnname,a.name columnComment,c.name columnType
+　　                   from bireport..syscolumns a 
+　　                   INNER JOIN bireport..sysobjects b on  a.id=b.id 
+　　                    left join bireport..systypes c on a.xtype = c.xtype
+　　                    where B.name='{tableName}'";
             var dt = client.Ado.GetDataTable(sql);
 
             // 3、开始生成实体
@@ -78,9 +246,9 @@ namespace testorm
             entityStr = entityStr.Replace("{className}", ToPascal(tableName));
             // 开始填充实体类字段
             StringBuilder sb = new StringBuilder();
-            for(int i = 0; i < dt.Rows.Count; i++)
+            for (int i = 0; i < dt.Rows.Count; i++)
             {
-                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"]??"".ToString().ToUpper()))
+                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"]?.ToString()?.ToUpper()))
                     continue;
                 sb.Append('\n');
                 sb.Append('	');
@@ -97,13 +265,13 @@ namespace testorm
                 sb.Append("public ");
                 sb.Append(checkType(dt.Rows[i][3].ToString()));
                 sb.Append(' ');
-                sb.Append(ToPascal(dt.Rows[i][1]?.ToString()??""));
+                sb.Append(ToPascal(dt.Rows[i][1]?.ToString() ?? ""));
                 sb.Append(' ');
                 sb.Append(" { set; get;} ");
             }
             entityStr = entityStr.Replace("{content}", sb.ToString());
 
-            var entityPath = filePath+"/"+ToPascal(tableName)+".cs";
+            var entityPath = filePath + "/" + ToPascal(tableName) + ".cs";
             File.WriteAllText(entityPath, entityStr.ToString());
             // 4、开始生成Controller
             entityStr = File.ReadAllText("Template/Controller.txt");
@@ -127,6 +295,23 @@ namespace testorm
             File.WriteAllText(IServicePath, entityStr.ToString());
             // 6、开始生成 Service
             entityStr = File.ReadAllText("Template/Service.txt");
+            sb.Clear();
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"].ToString()?.ToUpper()) && dt.Rows[i]["columnName"].ToString()?.ToUpper() != "ID")
+                    continue;
+                sb.Append('\n');
+                sb.Append("            ");
+                sb.Append(".WhereIF(");
+                sb.Append('\n');
+                sb.Append("                ");
+                var field = ToPascal(dt.Rows[i]["columnName"]?.ToString() ?? "");
+                sb.Append($"!string.IsNullOrEmpty(input.{field}),");
+                sb.Append('\n');
+                sb.Append("                ");
+                sb.Append($"x => x.{field}.Contains(input.{field}))");
+            }
+            entityStr = entityStr.Replace("{queryContent}", sb.ToString());
             entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
             entityStr = entityStr.Replace("{description}", " This is the class description");
             entityStr = entityStr.Replace("{auther}", author);
@@ -137,6 +322,31 @@ namespace testorm
             File.WriteAllText(ServicePath, entityStr.ToString());
             // 6、开始生成 Input
             entityStr = File.ReadAllText("Template/Input.txt");
+            sb.Clear();
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"]?.ToString()?.ToUpper()) && dt.Rows[i]["columnName"].ToString()?.ToUpper() != "ID")
+                    continue;
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///<summary>");
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///{dt.Rows[i][2].ToString()}");
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///</summary>");
+
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append("public ");
+                sb.Append(checkType(dt.Rows[i][3].ToString()));
+                sb.Append(' ');
+                sb.Append(ToPascal(dt.Rows[i][1]?.ToString() ?? ""));
+                sb.Append(' ');
+                sb.Append(" { set; get;} ");
+            }
+            entityStr = entityStr.Replace("{content}", sb.ToString());
             entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
             entityStr = entityStr.Replace("{description}", " This is the class description");
             entityStr = entityStr.Replace("{auther}", author);
@@ -145,6 +355,15 @@ namespace testorm
             entityStr = entityStr.Replace("{className}", ToPascal(tableName));
             var InputPath = filePath + "/" + ToPascal(tableName) + "Input.cs";
             File.WriteAllText(InputPath, entityStr.ToString());
+            // 6、开始生成 pageEntity
+            entityStr = File.ReadAllText("Template/PageEntity.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            var pageEntityPath = filePath + "/PageEntity.cs";
+            File.WriteAllText(pageEntityPath, entityStr.ToString());
         }
 
         private static string ToPascal(string str)
@@ -166,7 +385,231 @@ namespace testorm
 
         private static string checkType(string? value)
         {
-            switch (value?? "VARCHAR2".ToUpper())
+            switch (value ?? "VARCHAR2".ToUpper())
+            {
+                case "VARCHAR2":
+                case "VARCHAR":
+                case "CHAR":
+                case "TEXT":
+                case "CLOB":
+                    return "string";
+                case "DATE":
+                case "TIME":
+                case "DATETIME":
+                case "TIMESTAMP":
+                    return "Date";
+                case "DECIMAL":
+                case "DOUBLE PRECISION":
+                case "NUMBER":
+                    return "decimal";
+                case "INTEGER":
+                case "int":
+                    return "int";
+                case "LONG":
+                    return "long";
+                default:
+                    return "string";
+            }
+        }
+    }
+    #endregion
+    #region 代码生成oracle
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            // 要生成的表
+            string tableName = "BI_COLLECT";
+            // 要跳过的字段
+            string[] skipArr = new string[] { "ID", "CREATEDATE", "CREATEUSERID", "CREATEUSERNAME", "MODIFYDATE", "MODIFYUSERID", "MODIFYUSERNAME", "REMARK", "ENABLED" };
+            // 版本号
+            string version = "1.1";
+            // 文件生成地址(默认不传就是桌面)
+            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/generate";
+            // 要显示的作者
+            string author = "GPF";
+            // 需要显示的名称空间
+            string nameSpaceStr = "Bi";
+            //锦溪正式Oracle
+            var oracleConn1 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=jxbaizedb-scan1.luxshare.com.cn)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedb)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+
+            if (!Directory.Exists(filePath))
+            {
+                Directory.CreateDirectory(filePath);
+            }
+
+            // 1，连接数据库
+            SqlSugarClient client = new SqlSugarClient(new ConnectionConfig
+            {
+                ConnectionString = oracleConn1,
+                DbType = SqlSugar.DbType.Oracle,
+                IsAutoCloseConnection = true
+            });
+
+            // 2,查询表字段
+            string sql = $@"SELECT
+                               b.TABLE_NAME tableName                    --表名
+                             , c.COLUMN_NAME columnName                  --列名
+                             , nvl(f.COMMENTS, c.COLUMN_NAME) columnComment-- 列注释
+                             , c.DATA_TYPE columnType                    --字段类型 varchar之类的
+                         FROM  USER_USERS a
+                         LEFT JOIN all_tables b ON a.USERNAME = b.OWNER
+                         LEFT JOIN user_tab_columns c ON b.TABLE_NAME = c.TABLE_NAME
+                         LEFT JOIN all_col_comments f ON a.USERNAME = f.OWNER AND b.TABLE_NAME = f.TABLE_NAME AND c.COLUMN_NAME = f.COLUMN_NAME
+                         WHERE b.TABLE_NAME = '{tableName}'";
+            var dt = client.Ado.GetDataTable(sql);
+
+            // 3、开始生成实体
+            string entityStr = File.ReadAllText("Template/Entity.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{tableName}", tableName);
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
+            // 开始填充实体类字段
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"]?.ToString()?.ToUpper()))
+                    continue;
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///<summary>");
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///{dt.Rows[i][2].ToString()}");
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///</summary>");
+
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append("public ");
+                sb.Append(checkType(dt.Rows[i][3].ToString()));
+                sb.Append(' ');
+                sb.Append(ToPascal(dt.Rows[i][1]?.ToString() ?? ""));
+                sb.Append(' ');
+                sb.Append(" { set; get;} ");
+            }
+            entityStr = entityStr.Replace("{content}", sb.ToString());
+
+            var entityPath = filePath + "/" + ToPascal(tableName) + ".cs";
+            File.WriteAllText(entityPath, entityStr.ToString());
+            // 4、开始生成Controller
+            entityStr = File.ReadAllText("Template/Controller.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
+            var controllerPath = filePath + "/" + ToPascal(tableName) + "Controller.cs";
+            File.WriteAllText(controllerPath, entityStr.ToString());
+            // 5、开始生成 IService
+            entityStr = File.ReadAllText("Template/IService.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
+            var IServicePath = filePath + "/I" + ToPascal(tableName) + "Services.cs";
+            File.WriteAllText(IServicePath, entityStr.ToString());
+            // 6、开始生成 Service
+            entityStr = File.ReadAllText("Template/Service.txt");
+            sb.Clear();
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"].ToString()?.ToUpper()) && dt.Rows[i]["columnName"].ToString()?.ToUpper() != "ID")
+                    continue;
+                sb.Append('\n');
+                sb.Append("            ");
+                sb.Append(".WhereIF(");
+                sb.Append('\n');
+                sb.Append("                ");
+                var field = ToPascal(dt.Rows[i]["columnName"]?.ToString() ?? "");
+                sb.Append($"!string.IsNullOrEmpty(input.{field}),");
+                sb.Append('\n');
+                sb.Append("                ");
+                sb.Append($"x => x.{field}.Contains(input.{field}))");
+            }
+            entityStr = entityStr.Replace("{queryContent}", sb.ToString());
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
+            var ServicePath = filePath + "/" + ToPascal(tableName) + "Services.cs";
+            File.WriteAllText(ServicePath, entityStr.ToString());
+            // 6、开始生成 Input
+            entityStr = File.ReadAllText("Template/Input.txt");
+            sb.Clear();
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"]?.ToString()?.ToUpper()) && dt.Rows[i]["columnName"].ToString()?.ToUpper() != "ID")
+                    continue;
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///<summary>");
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///{dt.Rows[i][2].ToString()}");
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append($"///</summary>");
+
+                sb.Append('\n');
+                sb.Append('	');
+                sb.Append("public ");
+                sb.Append(checkType(dt.Rows[i][3].ToString()));
+                sb.Append(' ');
+                sb.Append(ToPascal(dt.Rows[i][1]?.ToString() ?? ""));
+                sb.Append(' ');
+                sb.Append(" { set; get;} ");
+            }
+            entityStr = entityStr.Replace("{content}", sb.ToString());
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
+            var InputPath = filePath + "/" + ToPascal(tableName) + "Input.cs";
+            File.WriteAllText(InputPath, entityStr.ToString());
+            // 6、开始生成 pageEntity
+            entityStr = File.ReadAllText("Template/PageEntity.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            var pageEntityPath = filePath + "/PageEntity.cs";
+            File.WriteAllText(pageEntityPath, entityStr.ToString());
+        }
+
+        private static string ToPascal(string str)
+        {
+            string[] split = str.Split(new char[] { '/', ' ', '_', '.' });
+            string newStr = "";
+            foreach (var item in split)
+            {
+                char[] chars = item.ToCharArray();
+                chars[0] = char.ToUpper(chars[0]);
+                for (int i = 1; i < chars.Length; i++)
+                {
+                    chars[i] = char.ToLower(chars[i]);
+                }
+                newStr += new string(chars);
+            }
+            return newStr;
+        }
+
+        private static string checkType(string? value)
+        {
+            switch (value ?? "VARCHAR2".ToUpper())
             {
                 case "VARCHAR2":
                 case "VARCHAR":
@@ -189,7 +632,7 @@ namespace testorm
                     return "string";
             }
         }
-    }
+    }*/
     #endregion
     #region c# 连接 starRock
     /*public class program
@@ -197,7 +640,7 @@ namespace testorm
         [Obsolete]
         public static void Main(string[] args)
         {
-            string dns = "Server=10.32.44.207;User ID=root;Password=;port=8000;Database=Demo";
+            string dns = "Server=10.32.44.207;User ID=root;Password=luxshare;port=9030;Database=default";
             SqlSugarClient Db = new SqlSugarClient(new ConnectionConfig()
             {
                 ConnectionString = dns,
@@ -205,7 +648,7 @@ namespace testorm
                 IsAutoCloseConnection = true,
             });
             Console.WriteLine("创建链接");
-            var dt2 = Db.Ado.GetDataTable("SELECT *  FROM test.doris_sink");
+            var dt2 = Db.Ado.GetDataTable("select * from mc_model_hive_ro where modelname='LA4';");
             Console.WriteLine("获取数据成功: 数量为" + dt2.Rows.Count);
 
         }
@@ -224,6 +667,23 @@ namespace testorm
                 DbType = SqlSugar.DbType.Sqlite
             });
             var dt = sqlSugarClient.Ado.GetDataTable("PRAGMA table_info(schedulework)");
+            Console.WriteLine(dt.Rows.Count);
+        }
+    }*/
+    #endregion
+    #region 连接sqlserver
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            string connect = "Server=192.168.1.25;DataBase=bireport;User ID=sa;Pwd=Passw0rd";
+            SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
+            {
+                ConfigId = "A",
+                ConnectionString = connect,
+                DbType = SqlSugar.DbType.SqlServer
+            });
+            var dt = sqlSugarClient.Ado.GetDataTable("select * from  sys_dataitem");
             Console.WriteLine(dt.Rows.Count);
         }
     }*/

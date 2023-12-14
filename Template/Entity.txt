@@ -1,4 +1,4 @@
-﻿using Baize.Core.Models;
+﻿using Bi.Core.Models;
 using SqlSugar;
 using System;
 
