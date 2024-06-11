@@ -1,18 +1,12 @@
-﻿using Bi.Core.Extensions;
-using Bi.Core.Models;
-using Bi.Core.Const;
-using Bi.Entities.Entity;
-using Bi.Entities.Input;
-using Bi.Services.IService;
-using Newtonsoft.Json.Linq;
+﻿using Roc.Const;
+using Roc.Models;
+using Roc.utils;
 using SqlSugar;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
+using Single.Entities.Entity;
+using Single.Services.IService;
+using Microsoft.Extensions.Logging;
 
-namespace {namespace};
+namespace {namespace}.Services.Service;
 
 /// <summary>
 /// 描述：{description}
@@ -24,17 +18,19 @@ namespace {namespace};
 public class {className}Services : I{className}Services
 {
     /// <summary>
+    /// 日志模块
+    /// </summary>
+    private readonly ILogger<{className}Services> logger;
+    /// <summary>
     /// 仓储字段
     /// </summary>
     private SqlSugarScopeProvider repository;
 
-    private IDbEngineServices dbEngine;
-
-    public {className}Services(ISqlSugarClient _sqlSugarClient
-                        , IDbEngineServices dbService)
+    public {className}Services(ISqlSugarClient _sqlSugarClient,
+                                ILogger<{className}Services> logger)
     {
-        repository = (_sqlSugarClient as SqlSugarScope).GetConnectionScope("bidb");
-        this.dbEngine = dbService;
+        this.logger = logger;
+        repository = (_sqlSugarClient as SqlSugarScope).GetConnectionScope("{DataBase}");
     }
 
 
@@ -42,55 +38,57 @@ public class {className}Services : I{className}Services
     /// <summary>
     /// 添加新的{className}
     /// </summary>
-    public async Task<double> addAsync({className}Input input)
+    public async Task<int> addAsync({className} input, RocUser rocUser)
     {
-        //var inputentitys = await repository.Queryable<{className}>().Where(x =>  x.DeleteFlag == "N").ToListAsync();
-        //if (inputentitys.Any())
-        //    return BaseErrorCode.PleaseDoNotAddAgain;
+        if (rocUser == null)
+            return RocCode.User_None;
 
-        var entity = input.MapTo<{className}>();
-        entity.Create(input.CurrentUser);
-        entity.Enabled = input.Enabled;
-        await repository.Insertable<{className}>(entity).ExecuteCommandAsync();
-        return BaseErrorCode.Successful;
+        input.Create(rocUser);
+        logger.LogInformation($"insert {className} by {rocUser.Account} param {JsonUtil.ObjectToJson(input)}");
+        await repository.Insertable<{className}>(input).ExecuteCommandAsync();
+        return RocCode.Success;
     }
 
     /// <summary>
     /// 根据ID删除{className}
     /// </summary>
-    public async Task<double> deleteAsync({className}Input input)
+    public async Task<int> deleteAsync({className} input, RocUser rocUser)
     {
-        var set = input.MapTo<{className}>();
-        await repository.Deleteable<{className}>(set).ExecuteCommandAsync();
-        return BaseErrorCode.Successful;
+        if (rocUser == null)
+            return RocCode.User_None;
+
+        logger.LogInformation($"delete {className} by {rocUser.Account} param {JsonUtil.ObjectToJson(input)}");
+        await repository.Deleteable<{className}>(input).ExecuteCommandAsync();
+        return RocCode.Success;
     }
 
     /// <summary>
     /// 更新{className}
     /// </summary>
-    public async Task<double> ModifyAsync({className}Input input)
+    public async Task<int> ModifyAsync({className} input, RocUser rocUser)
     {
-        {className} set = new();
-        repository.Tracking(set);
-        input.MapTo<{className}Input,{className}>(set);
-        set.Modify(input.Id,input.CurrentUser);
-        await repository.Updateable<{className}>(set).ExecuteCommandAsync();
-        return BaseErrorCode.Successful;
+        if (rocUser == null)
+            return RocCode.User_None;
+
+        logger.LogInformation($"Modify {className} by {rocUser.Account} param {JsonUtil.ObjectToJson(input)}");
+        await repository.Updateable<{className}>(input).ExecuteCommandAsync();
+        return RocCode.Success;
     }
 
     /// <summary>
     /// 分页获取所有{className}
     /// </summary>
-    public async Task<PageEntity<IEnumerable<{className}>>> getPagelist(PageEntity<{className}Input> inputs)
+    public async Task<RocPage<IEnumerable<{className}>>> getPagelist(RocPage<{className}> inputs)
     {
         //分页查询
         RefAsync<int> total = 0;
         var input = inputs.Data;
         var data = await repository.Queryable<{className}>()
 {queryContent}
+            .OrderByPropertyName(inputs.OrderField, inputs.Ascending?OrderByType.Asc: OrderByType.Desc)
             .ToPageListAsync(inputs.PageIndex, inputs.PageSize, total);
 
-        return new PageEntity<IEnumerable<{className}>>
+        return new RocPage<IEnumerable<{className}>>
         {
             PageIndex = inputs.PageIndex,
             Ascending = inputs.Ascending,
@@ -104,7 +102,7 @@ public class {className}Services : I{className}Services
     /// <summary>
     /// 获取所有{className}
     /// </summary>
-    public async Task<IEnumerable<{className}>> getList({className}Input input)
+    public async Task<IEnumerable<{className}>> getList({className} input)
     {
         //分页查询
         var data = await repository.Queryable<{className}>()
@@ -114,16 +112,13 @@ public class {className}Services : I{className}Services
         return data;
     }
 
-    public async Task<(double, {className})> getEntity({className}Input input)
+    public async Task<{className}> getEntity({className} input)
     {
         var data = await repository.Queryable<{className}>()
 {queryContent}
             .Take(1)
             .ToListAsync();
-        var res = data.FirstOrDefault();
-        if (res == null)
-            return (BaseErrorCode.Fail,null);
-        return (BaseErrorCode.Successful, data.FirstOrDefault());
+        return data.FirstOrDefault();
     }
 
 }

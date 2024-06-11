@@ -1,6 +1,9 @@
-﻿using Roc.Build;
-using Roc.Models;
-using {namespace}.Entities.Entity;
+﻿using Bi.Core.Interfaces;
+using Bi.Core.Models;
+using Bi.Entities.Entity;
+using Bi.Entities.Input;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace {namespace}.Services.IService;
 
@@ -16,26 +19,26 @@ public interface I{className}Services : RocInterface
     /// <summary>
     /// 添加新的{className}
     /// </summary>
-    Task<int> addAsync({className} input, RocUser rocUser);
+    Task<double> addAsync({className}Input input);
     /// <summary>
     /// 根据ID删除{className}
     /// </summary>
-    Task<int> deleteAsync({className} input, RocUser rocUser);
+    Task<double> deleteAsync({className}Input input);
     /// <summary>
     /// 更新{className}
     /// </summary>
-    Task<int> ModifyAsync({className} input, RocUser rocUser);
+    Task<double> ModifyAsync({className}Input input);
     /// <summary>
     /// 分页获取所有{className}
     /// </summary>
-    Task<RocPage<IEnumerable<{className}>>> getPagelist(RocPage<{className}> inputs);
+    Task<RocPage<IEnumerable<{className}>>> getPagelist(RocPage<{className}Input> inputs);
     /// <summary>
     /// 获取所有{className}
     /// </summary>
-    Task<IEnumerable<{className}>> getList({className} input);
+    Task<IEnumerable<{className}>> getList({className}Input input);
     /// <summary>
     /// 根据ID获取单个{className}
     /// </summary>
-    Task<{className}> getEntity({className} input);
+    Task<(double,{className})> getEntity({className}Input input);
 }
 

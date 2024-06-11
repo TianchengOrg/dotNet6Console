@@ -1,0 +1,244 @@
+﻿<template>
+	<div class="app-container">
+		<div class="filter-container">
+			{searchInput}
+			<el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
+				查询
+			</el-button>
+			<el-button v-waves class="filter-item" type="primary" icon="el-icon-plus" @click="handleInsert">
+				插入
+			</el-button>
+		</div>
+
+		<el-table
+			:key="tableKey"
+			v-loading="listLoading"
+			:data="list"
+			border
+			fit
+			highlight-current-row
+			style="width: 100%;"
+			@sort-change="sortChange"
+		>
+			{content}
+			<el-table-column :label="$t('actions')" align="center" width="230" class-name="small-padding fixed-width">
+				<template slot-scope="{row}">
+					<el-button type="primary" size="mini" @click="handleUpdate(row)">
+						修改
+					</el-button>
+					<el-button type="primary" size="mini" @click="handleDelete(row)">
+						删除
+					</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
+
+		<pagination v-show="total>0" :total="total" :page.sync="pageConfig.pageIndex" :limit.sync="pageConfig.pageSize" @pagination="getList" />
+
+
+		<el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible">
+			<el-form ref="dataForm" :rules="rules" :model="submitData" label-position="left" label-width="200px" style="width: 600px; margin-left:80px;">
+				{dialog}
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click="dialogFormVisible = false">
+				取消
+				</el-button>
+				<el-button type="primary" @click="updateData()">
+				提交
+				</el-button>
+			</div>
+		</el-dialog>
+	</div>
+</template>
+
+<script>
+/// <summary>
+/// 描述：{description}
+/// 作者：{auther}
+/// 创建日期：{createDate}
+/// 版本：{version}
+/// </summary>
+
+import { insertEntity,deleteEntity,modifyEntity,getPageList} from '@/api/{jsName}'
+import waves from '@/directive/waves' // waves directive
+import { parseTime } from '@/utils'
+import Pagination from '@/components/Pagination' // secondary package based on el-pagination
+
+export default {
+	components: { Pagination },
+	directives: { waves },
+	filters: {
+		statusFilter(status) {
+			const statusMap = {
+				1: 'success',
+				0: 'danger'
+			}
+			return statusMap[status]
+		}
+	},
+	data() {
+		return {
+			isAdd : false,	// 是否新增
+			dialogTitle:"", // 标题
+			tableKey: 0,	// 表格元素
+			list: [], // 数据
+			total: 0,
+			listLoading: false,
+			listQuery: {
+				{listQuery}
+			},
+			pageConfig: {
+				pageSize: 10,
+				pageIndex: 1
+			},
+			submitData: {},  // 新增修改实体
+
+			dialogFormVisible: false,
+			pvData: [],
+			rules: {
+				title: [{ required: true, message: 'title is required', trigger: 'blur' }]
+			},
+			downloadLoading: false
+		}
+	},
+	created() {
+		this.getList()
+	},
+	methods: {
+		handleInsert(){
+			this.dialogFormVisible = true
+			this.submitData = {};
+			this.dialogTitle = "新增" 
+			this.isAdd = true
+		},
+		handleUpdate(row) {
+			this.submitData = Object.assign({}, row) // copy obj
+			this.dialogFormVisible = true
+			this.dialogTitle = "修改"
+			this.isAdd = false;
+			this.$nextTick(() => {
+				this.$refs['dataForm'].clearValidate()
+			})
+		},
+		updateData(){
+			const that = this;
+			that.$refs['dataForm'].validate((validate) => {
+				if (validate) {
+					let obj = { ...that.submitData };
+					let request = that.isAdd ? insertEntity(obj) : modifyEntity(obj);
+					request.then((res) => {
+						if (res.code === 200) {
+							that.$notify({
+								title: 'Success',
+								message: 'execute Successfully',
+								type: 'success',
+								duration: 2000
+							})
+							that.dialogFormVisible = false;
+							that.getList(); // 刷新表格
+						} else {
+							that.$notify({
+								title: 'Fail',
+								message: res.message,
+								type: 'fail',
+								duration: 4000
+							})
+						}
+					});
+				}
+			})
+			this.dialogFormVisible = false
+		},
+		handleDelete(row){
+			this.$confirm('此操作将永久删除该条记录, 是否继续?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(() => {
+				this.submitData = Object.assign({}, row) // copy obj
+				const that = this;
+				let obj = { ...that.submitData };
+				deleteEntity(obj).then((res) => {
+					if (res.code === 200) {
+						that.$notify({
+							title: 'Success',
+							message: 'delete Successfully',
+							type: 'success',
+							duration: 2000
+						})
+						that.dialogFormVisible = false;
+						that.getList(); // 刷新表格
+					} else {
+						that.$notify({
+							title: 'Fail',
+							message: res.message,
+							type: 'fail',
+							duration: 4000
+						})
+					}
+				});
+			}).catch(() => {
+				this.$message({
+					type: 'info',
+					message: '已取消删除'
+				});          
+			});
+		},
+		handleFilter() {
+			this.listQuery.page = 1
+			this.getList()
+		},
+		getList() {
+			this.list = []
+			this.listLoading = true
+			const { title } = this.listQuery
+			const obj = {
+				orderField: 'createdate', // 排序字段
+				ascending: false, // 是否升序
+				pageSize: this.pageConfig.pageSize, // 分页大小
+				pageIndex: this.pageConfig.pageIndex, // 当前页码
+				data: {
+					title
+				}
+			}
+			getPageList(obj).then(response => {
+				this.list = response.result.data
+				this.total = response.result.total
+				// Just to simulate the time of the request
+				setTimeout(() => {
+					this.listLoading = false
+				}, 1.5 * 1000)
+			})
+		},
+		sortChange(data) {
+			const { prop, order } = data
+			if (prop === 'id') {
+				this.sortByID(order)
+			}
+		},
+		sortByID(order) {
+			if (order === 'ascending') {
+				this.listQuery.sort = '+id'
+			} else {
+				this.listQuery.sort = '-id'
+			}
+			this.handleFilter()
+		},
+		dateFormat() {
+			var date=new Date();
+			var year=date.getFullYear();
+			/* 在日期格式中，月份是从0开始的，因此要加0
+				* 使用三元表达式在小于10的前面加0，以达到格式统一  如 09:11:05
+				* */
+			var month= date.getMonth()+1<10 ? "0"+(date.getMonth()+1) : date.getMonth()+1;
+			var day=date.getDate()<10 ? "0"+date.getDate() : date.getDate();
+			var hours=date.getHours()<10 ? "0"+date.getHours() : date.getHours();
+			var minutes=date.getMinutes()<10 ? "0"+date.getMinutes() : date.getMinutes();
+			var seconds=date.getSeconds()<10 ? "0"+date.getSeconds() : date.getSeconds();
+			// 拼接
+			return year+"-"+month+"-"+day+"T"+hours+":"+minutes+":"+seconds;
+		}
+	}
+}
+</script>

@@ -1,9 +1,4 @@
-﻿using Roc.Build;
-using Roc.Const;
-using Roc.Models;
-using Microsoft.AspNetCore.Mvc;
-using Single.Entities.Entity;
-using Single.Services.IService;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace {namespace}.Controllers.System;
 
@@ -15,7 +10,7 @@ namespace {namespace}.Controllers.System;
 /// </summary>
 
 [Route("[controller]/[action]")]
-public class {className}Controller : RocController
+public class {className}Controller:RocController
 {
     /// <summary>
     /// {className} 服务接口
@@ -37,13 +32,14 @@ public class {className}Controller : RocController
     /// <returns></returns>
     [HttpPost]
     [ActionName("insert")]
-    public async Task<RocResult> insertAsync({className} input)
+    public async Task<ResponseResult> insertAsync({className} input)
     {
-        var code = await service.addAsync(input, this.rocUser);
-        if (code == RocCode.Success)
+        input.CurrentUser = this.CurrentUser;
+        var result = await service.addAsync(input);
+        if (result == RocCode.Success)
             return Success("插入成功！");
         else
-            return Error(code);
+            return Error("插入失败！",result);
     }
 
     /// <summary>
@@ -53,13 +49,14 @@ public class {className}Controller : RocController
     /// <returns></returns>
     [HttpPost]
     [ActionName("delete")]
-    public async Task<RocResult> deleteAsync({className} input)
+    public async Task<ResponseResult> deleteAsync({className} input)
     {
-        var code = await service.deleteAsync(input, this.rocUser);
-        if (code == RocCode.Success)
+        input.CurrentUser = this.CurrentUser;
+        var result = await service.deleteAsync(input);
+        if (result == RocCode.Success)
             return Success("删除成功！");
         else
-            return Error(code);
+            return Error(result.ToString());
     }
 
     /// <summary>
@@ -69,13 +66,14 @@ public class {className}Controller : RocController
     /// <returns></returns>
     [HttpPost]
     [ActionName("modify")]
-    public async Task<RocResult> modifyAsync({className} input)
+    public async Task<ResponseResult> modifyAsync({className} input)
     {
-        var code = await service.ModifyAsync(input,this.rocUser);
-        if (code == RocCode.Success)
-            return Success("修改成功！");
+        input.CurrentUser = this.CurrentUser;
+        var result = await service.ModifyAsync(input);
+        if (result == RocCode.Success)
+            return Success(result.ToString());
         else
-            return Error(code);
+            return Error(result.ToString());
     }
 
     /// <summary>
@@ -83,7 +81,7 @@ public class {className}Controller : RocController
     /// </summary>
     [HttpPost]
     [ActionName("getPagelist")]
-    public async Task<RocResult<RocPage<IEnumerable<{className}>>>> getPagelist(RocPage<{className}> inputs)
+    public async Task<ResponseResult<RocPage<IEnumerable<{className}>>>> getPagelist(RocPage<{className}> inputs)
     {
         return Success(await service.getPagelist(inputs));
     }
@@ -93,7 +91,7 @@ public class {className}Controller : RocController
     /// </summary>
     [HttpPost]
     [ActionName("getList")]
-    public async Task<RocResult<IEnumerable<{className}>>> getList({className} input)
+    public async Task<ResponseResult<IEnumerable<{className}>>> getList({className} input)
     {
         return Success(await service.getList(input));
     }
@@ -103,9 +101,18 @@ public class {className}Controller : RocController
     /// </summary>
     [HttpPost]
     [ActionName("getEntity")]
-    public async Task<RocResult<{className}>> getEntity({className} input)
+    public async Task<ResponseResult<{className}>> getEntity({className} input)
     {
-        return Success(await service.getEntity(input));
+        var result = await service.getEntity(input);
+        if(result.Item1 == RocCode.Success)
+        {
+            return Success(result.Item2);
+        }
+        else
+        {
+            return Error("查询失败", result.Item2);
+        }
+        
     }
     
 }

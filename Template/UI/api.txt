@@ -1,0 +1,40 @@
+﻿import request from '@/utils/request'
+
+/// <summary>
+/// 描述：{description}
+/// 作者：{auther}
+/// 创建日期：{createDate}
+/// 版本：{version}
+/// </summary>
+
+export function insertEntity(data){
+	return request({
+	  url: '/{className}/insert',
+	  method: 'post',
+	  data
+	})
+}
+
+export function deleteEntity(data){
+	return request({
+	  url: '/{className}/delete',
+	  method: 'post',
+	  data
+	})
+}
+
+export function modifyEntity(data){
+	return request({
+	  url: '/{className}/modify',
+	  method: 'post',
+	  data
+	})
+}
+
+export function getPageList(data) {
+  return request({
+    url: '/{className}/getPageList',
+    method: 'post',
+    data
+  })
+}

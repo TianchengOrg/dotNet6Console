@@ -1,4 +1,4 @@
-﻿using Roc.Models;
+﻿using Bi.Core.Models;
 using SqlSugar;
 using System;
 
@@ -10,7 +10,7 @@ namespace {namespace}.Entities.Entity;
 /// 版本：{version}
 /// </summary>
 [SugarTable("{tableName}")]
-public class {className} : {inheritEntity}
+public class {className}:RocEntity
 {
 {content}
 }

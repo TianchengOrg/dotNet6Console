@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MiniExcelLibs;
 using SqlSugar;
@@ -12,7 +12,19 @@ using testorm.Entity;
 using System.IO;
 using Microsoft.Spark.Sql.Types;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
+using System.Security.Cryptography;
+using System.Net;
+using System.Security.Policy;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Buffers.Text;
+using testorm.utils;
+using System.Net.Http.Headers;
+using Razorvine.Pyro;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using Microsoft.Spark.Sql;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace testorm
 {
@@ -23,6 +35,353 @@ namespace testorm
             
         }
     }*/
+    #region 文件路径拆解
+    /*public class program
+    {
+        static void Main(string[] args)
+        {
+            // 获取当前运行程序的目录
+            string fileDir = Environment.CurrentDirectory;
+            Console.WriteLine("当前程序目录：" + fileDir);
+
+            // 一个文件目录
+            string filePath = "C:\\JiYF\\BenXH\\BenXHCMS.xml";
+            Console.WriteLine("该文件的目录：" + filePath);
+
+            // 获取文件的全路径
+            string str = "获取文件的全路径：" + Path.GetFullPath(filePath);
+            Console.WriteLine(str);
+
+            // 获取文件所在的目录
+            string strDir = "获取文件所在的目录：" + c;
+            Console.WriteLine(strDir);
+
+            // 获取文件的名称含有后缀
+            string strFileName = "获取文件的名称含有后缀：" + Path.GetFileName(filePath);
+            Console.WriteLine(strFileName);
+
+            // 获取文件的名称没有后缀
+            string strFileNameNoExt = "获取文件的名称没有后缀：" + Path.GetFileNameWithoutExtension(filePath);
+            Console.WriteLine(strFileNameNoExt);
+
+            // 获取路径的后缀扩展名称
+            string strExt = "获取路径的后缀扩展名称：" + Path.GetExtension(filePath);
+            Console.WriteLine(strExt);
+
+            // 获取路径的根目录
+            string strRootPath = "获取路径的根目录：" + Path.GetPathRoot(filePath);
+            Console.WriteLine(strRootPath);
+
+            Console.ReadKey();
+        }
+    }*/
+    #endregion
+    #region 获取IPV4地址
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+            try
+            {
+                IPAddress[] ipv4Addresses = GetLocalIPv4Addresses();
+                Console.WriteLine("本机的IPv4地址：");
+                foreach (IPAddress address in ipv4Addresses)
+                {
+                    Console.WriteLine(address.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("获取IP地址时发生错误: " + ex.Message);
+            }
+        }
+        static IPAddress[] GetLocalIPv4Addresses()
+        {
+            return NetworkInterface
+                .GetAllNetworkInterfaces()
+                .Where(ni => ni.OperationalStatus == OperationalStatus.Up)
+                .SelectMany(ni => ni.GetIPProperties().UnicastAddresses)
+                .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork)
+                .Select(ua => ua.Address)
+                .ToArray();
+        }
+    }*/
+    #endregion
+    #region 尝试调用OA系统消息 失败
+    /*public class program
+    {
+        public static async Task Main(string[] args)
+        {
+            string appid = "F557F36E725A20134D084500D44407EA";
+            string cpk;
+            string pricpk;
+
+            RSA rsa = RSA.Create(2048);
+            
+            // 获取公钥并转换为Base64字符串，这与Java中的处理方式可能不同
+            byte[] publicKeyBytes = rsa.ExportRSAPublicKey();
+            byte[] privateKeyBytes =  rsa.ExportRSAPrivateKey();
+            string base64PublicKey = Convert.ToBase64String(publicKeyBytes);
+            string private64KeyBytes = Convert.ToBase64String(privateKeyBytes);
+            cpk =  base64PublicKey;
+            pricpk = private64KeyBytes;
+            
+
+            // 创建HttpClient实例
+            using var httpClient = new HttpClient();
+
+            // 设置请求的URL
+            string url = "http://192.168.1.22:8090/api/ec/dev/auth/regist";
+
+            // 创建HttpRequestMessage，以便添加自定义Header
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+            // 添加Header信息
+            request.Headers.Add("appid", appid);
+            request.Headers.Add("cpk", cpk);
+
+            // 发送POST请求
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+
+            Result res;
+            // 检查响应状态码
+            if (response.IsSuccessStatusCode)
+            {
+                // 读取响应内容
+                string responseBody = await response.Content.ReadAsStringAsync();
+                res = JsonSerializer.Deserialize<Result>(responseBody);
+                Console.WriteLine($"Response: {responseBody}");
+            }
+            else
+            {
+                Console.WriteLine($"Error: {response.StatusCode}");
+                return;
+            }
+            // 获取token
+            url = "http://192.168.1.22:8090/api/ec/dev/auth/applytoken";
+            request = new HttpRequestMessage(HttpMethod.Post, url);
+
+
+            //httpclient的使用请自己封装，可参考ECOLOGY中HttpManager类
+            //HttpManager http = new HttpManager();
+            //请求头信息封装集合
+            //Map<String, String> heads = new HashMap<String, String>();
+            //ECOLOGY返回的系统公钥
+
+            String spk = res.spk;
+            string secret = res.secret;
+            string encryptedMessage;
+
+            var bytes = rsa.Encrypt(Encoding.UTF8.GetBytes(secret), RSAEncryptionPadding.OaepSHA1);
+            encryptedMessage = Convert.ToBase64String(bytes);
+            request.Headers.Add("appid", appid);
+            request.Headers.Add("secret", encryptedMessage);
+            response = await httpClient.SendAsync(request);
+
+            // 检查响应状态码
+            if (response.IsSuccessStatusCode)
+            {
+                // 读取响应内容
+                string responseBody = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Response: {responseBody}");
+            }
+            else
+            {
+                Console.WriteLine($"Error: {response.StatusCode}");
+                return;
+            }
+
+
+            //RSA rsa = new RSA();
+            //对秘钥进行加密传输，防止篡改数据
+            //String secret = rsa.encrypt(null, "调用注册接口返回的secret参数值", null, "utf-8", spk, false);
+            //封装参数到请求头
+            //heads.put("appid", "EEAA5436-7577-4BE0-8C6C-89E9D88805EA");
+            //heads.put("secret", secret);
+            //调用ECOLOGY系统接口进行申请
+            //String data = http.postDataSSL("http://ip:port/api/ec/dev/auth/applytoken", null, heads);
+            //返回的数据格式为json，具体格式参数格式请参考文末API介绍。
+            //注意此时如果申请成功会返回token,请根据业务需要进行保存。
+            //System.out.println(data);
+
+        }
+        public static RSAParameters ImportPublicKeyFromBase64(string base64PublicKey)
+        {
+            // 将Base64编码的公钥字符串解码为字节数组
+            byte[] publicKeyBytes = Convert.FromBase64String(base64PublicKey);
+
+            // 检查公钥前缀以确定其类型（例如，PKCS#1或PKCS#8）
+            // 这里以PKCS#8为例，其开头通常是0x30 (SEQUENCE) followed by 0x81 (length)
+            *//*if (publicKeyBytes[0] != 0x30 || publicKeyBytes[1] != 0x81)
+            {
+                throw new ArgumentException("The provided key is not in the expected PKCS#8 format.");
+            }*//*
+
+            // 移除PKCS#8包装，直接提取RSA公钥信息
+            // 注意：此步骤取决于公钥确切的编码方式，可能需要调整
+            int offset = 2; // PKCS#8头部长度简化示例，实际情况可能更复杂
+            byte[] rsaPublicKeyBytes = new byte[publicKeyBytes.Length - offset];
+            Array.Copy(publicKeyBytes, offset, rsaPublicKeyBytes, 0, rsaPublicKeyBytes.Length);
+
+            // 使用RSA类来解析公钥字节并导出为RSAParameters
+            using (RSA rsa = RSA.Create())
+            {
+                rsa.ImportSubjectPublicKeyInfo(rsaPublicKeyBytes, out _);
+                return rsa.ExportParameters(false); // 只导出公钥参数
+            }
+        }
+    }*/
+    #endregion
+    #region 安防接口调用
+    /*public class program
+    {
+        public static void Main(string[] args)
+        {
+
+            HttpUtillib.SetPlatformInfo("23211536", "QRGXyCbAAu34FYfc8vmc", "192.168.1.27", 1443, true);
+
+            // 组装POST请求body          
+            //string body = "{\"cardNo\": \"3151493508\"}";
+
+            // 填充Url           
+            //string uri = "/artemis/api/irds/v1/card/cardInfo";
+
+            // 组装POST请求body          
+            //string body = "{\"PersonName\":\"葛饱饱\",\"Gender\":\"1\",\"OrgIndexCode\":\"476b1874-b49e-4a16-ab86-c5467456d008\",\"Birthday\":null,\"PhoneNo\":\"13000110011\",\"email\":\"person1@person.com\",\"certificateType\":\"111\",\"certificateNo\":\"11001001001100110011\",\"jobNo\":\"9999\",\"faces\":{\"faceData\":\"/9j/4AAQSkZJRgABAQEAAAAAAAD/4QBCRXhpZgAATU\"}}";
+
+            // 填充Url           
+            //string uri = "/artemis/api/resource/v2/person/single/add";
+
+            // 组装POST请求body          
+            *//*string body = "[{\"clientId\": 1,\"PersonName\":\"葛饱饱\",\"Gender\":\"1\",\"OrgIndexCode\":\"476b1874-b49e-4a16-ab86-c5467456d008\",\"Birthday\":\"1990-01-01\",\"PhoneNo\":\"13000110011\",\"email\":\"person1@person.com\",\"certificateType\":\"111\",\"certificateNo\":\"11001001001100110011\",\"jobNo\":\"9999\"}]";
+
+            // 填充Url           
+            string uri = "/artemis/api/resource/v1/person/batch/add";*//*
+
+            // 组装POST请求body          
+            //string body = "{\"pageNo\": 1,\"pageSize\": 2}";
+
+            // 填充Url           
+            //string uri = "/artemis/api/resource/v2/person/personList";
+            // 组装POST请求body          
+            //string body = "{\"startTime\": \"2024-03-26T08:00:00.000+08:00\",\"endTime\": \"2024-03-26T08:30:00.000+08:00\"}";
+            var startTime = "2024-04-15T15:04:11+08:00";
+            var endTime = "2024-04-15T15:05:10+08:00";
+            string body = $"{{\"pageNo\": 1,\"pageSize\": 10,\"doorName\":\"精密_门_1\"}}";
+            // 填充Url           
+            string uri = "/artemis/api/acs/v2/door/events";
+
+            // 发起POST请求，超时时间15秒，返回响应字节数组
+            byte[] result = HttpUtillib.HttpPost(uri, body, 15);
+            if (null == result)
+            {
+                // 请求失败
+                Console.WriteLine("/artemis/api/irds/v1/card/cardInf: POST fail");
+            }
+            else
+            {
+                //// 注意：使用方应当知道哪个Url返回的是字节流（如根据图片Url获取图片数据流），
+                ////       哪个肯定是字符串，如果肯定是返回字符串的，直接转成字符串即可
+                ////       如果是返回字节流的，有可能因为请求失败了返回json报文，因此对于这种情况需要将字节流
+                ////       转换成字符串判断是否存在失败的情况，如果存在失败则按字符串处理，否则认为返回的是字节流
+                ////       本例中根据监控点编号查询监控点信息，不存在返回字节流的情况，直接转换成字符串来处理即可
+                var json = System.Text.Encoding.UTF8.GetString(result);
+                Console.WriteLine(json);
+            }
+
+            Console.WriteLine("调用");
+        }
+        private static string HmacSHA256(string secret, string signKey)
+        {
+            string signRet = string.Empty;
+            using (HMACSHA256 mac = new HMACSHA256(Encoding.UTF8.GetBytes(signKey)))
+            {
+                byte[] hash = mac.ComputeHash(Encoding.UTF8.GetBytes(secret));
+                signRet = Convert.ToBase64String(hash);
+                //signRet = ToHexString(hash); ;
+            }
+            return signRet;
+        }
+
+        private static string HmacSHA2562(string secret, string stringToSign)
+        {
+            string signRet = string.Empty;
+            byte[] keyBytes = Encoding.UTF8.GetBytes(secret);
+            HMACSHA256 mac = new HMACSHA256();
+            mac.Key = keyBytes;
+            byte[] signBytes = Encoding.UTF8.GetBytes(stringToSign);
+            byte[] hash = mac.ComputeHash(signBytes);
+            signRet = Convert.ToBase64String(hash);
+            return signRet;
+        }
+
+        public static string HmacSHA256Encrypt(string secret, string signKey)
+        {
+            string signRet = string.Empty;
+            using (HMACSHA256 mac = new HMACSHA256(Encoding.UTF8.GetBytes(secret)))
+            {
+                mac.Initialize();
+                byte[] hash = mac.ComputeHash(Encoding.UTF8.GetBytes(signKey));
+                sbyte[] sb = new sbyte[hash.Length];
+                for (int i = 0; i < hash.Length; i++)
+                {
+                    sb[i] = hash[i] <= 127 ? (sbyte)hash[i] : (sbyte)(hash[i] - 256);
+                }
+                byte[] unsignedByteArray = (byte[])(Array)sb;
+                signRet = Convert.ToBase64String(unsignedByteArray);
+            }
+            return signRet;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url">请求后台地址</param>
+        /// <returns></returns>
+        public async static Task<string> Post()
+        {
+            DateTime date = DateTime.Now;
+            var dateStr = date.ToString();
+            var ak = "23211536";
+            var sk = "QRGXyCbAAu34FYfc8vmc";
+            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var dateLong = Convert.ToInt64((date.ToUniversalTime() - epoch).TotalMilliseconds);
+            var uri = "/artemis/api/v1/oauth/token";
+
+            var signature = $"POST\nx-ca-key:{ak}\n{uri}";
+            //var temp = "POST\n*\ntext/plain;charset=UTF-8\nheader-a:A\nheader-b:b\nx-ca-key:29666671\nx-ca-timestamp:1479968678000\n/artemis/api/example?a-body=a&qa=a&qb=B&x-body=x";
+
+            Console.WriteLine(signature);
+
+            var qianming = HmacSHA2562(sk, signature);
+
+            Console.WriteLine(qianming);
+
+            string result = "";
+            var handler = new HttpClientHandler();
+            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+            handler.ServerCertificateCustomValidationCallback =
+                    (httpRequestMessage, cert, cetChain, policyErrors) =>
+                    {
+                        return true;
+                    };
+            HttpClient httpClient = new HttpClient(handler);
+            httpClient.DefaultRequestHeaders.Add("X-Ca-Key", ak);
+            httpClient.DefaultRequestHeaders.Add("X-Ca-Signature", qianming);
+            httpClient.DefaultRequestHeaders.Add("X-Ca-Signature-Headers", "x-ca-key");
+            //System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            //httpClient.BaseAddress = new Uri("https://192.168.1.27:1443" + uri);
+
+            var response = await httpClient.PostAsync("https://192.168.1.27:1443/artemis/api/v1/oauth/token", null);
+
+
+            result = response.Content.ReadAsStringAsync().Result;
+
+            Console.WriteLine(result);
+            return result;
+        }
+    }*/
+    #endregion
     #region 定时器
     /*class Scheduler
     {
@@ -194,25 +553,31 @@ namespace testorm
         }
     }*/
     #endregion
-    #region 代码生成sqlserver
+    #region honghu 系统 代码生成sqlserver
     public class program
     {
         public static void Main(string[] args)
         {
+            string DataBase = "honghu";
             // 要生成的表
-            string tableName = "bi_article";
+            string tableName = "sys_role";
+            // 实体类是否需要创建人信息
+            bool createFlag = true;
             // 要跳过的字段
-            string[] skipArr = new string[] { "ID", "CREATEDATE", "CREATEUSERID", "CREATEUSERNAME", "MODIFYDATE", "MODIFYUSERID", "MODIFYUSERNAME", "REMARK", "ENABLED" };
+            // string[] skipArr = new string[] { "ID", "CREATEDATE", "CREATEUSERID", "CREATEUSERNAME", "MODIFYDATE", "MODIFYUSERID", "MODIFYUSERNAME", "REMARK", "ENABLED" };
+            string[] skipArr = new string[] { "ID" };
+            if (createFlag)
+                skipArr = new string[] { "ID", "CREATEDATE", "CREATEUSERID", "CREATEUSERNAME", "ENABLED" };
             // 版本号
-            string version = "1.1";
+            string version = "1.6";
             // 文件生成地址(默认不传就是桌面)
             string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/generate";
             // 要显示的作者
-            string author = "GPF";
+            string author = "TP";
             // 需要显示的名称空间
-            string nameSpaceStr = "Bi";
-            //锦溪正式Oracle
-            var sqlserverConn1 = "Server=192.168.1.25;DataBase=bireport;User ID=sa;Pwd=Passw0rd";
+            string nameSpaceStr = "Single";
+            // SQLSERVER 
+            var sqlserverConn1 = $"Server=192.168.1.25;DataBase={DataBase};User ID=sa;Pwd=Passw0rd;connection timeout=600";
 
             if (!Directory.Exists(filePath))
             {
@@ -229,14 +594,15 @@ namespace testorm
 
             // 2,查询表字段
             string sql = $@"select b.name tablename,a.name columnname,a.name columnComment,c.name columnType
-　　                   from bireport..syscolumns a 
-　　                   INNER JOIN bireport..sysobjects b on  a.id=b.id 
-　　                    left join bireport..systypes c on a.xtype = c.xtype
+　　                   from {DataBase}..syscolumns a 
+　　                   INNER JOIN {DataBase}..sysobjects b on  a.id=b.id 
+　　                    left join {DataBase}..systypes c on a.xtype = c.xtype
 　　                    where B.name='{tableName}'";
             var dt = client.Ado.GetDataTable(sql);
 
             // 3、开始生成实体
             string entityStr = File.ReadAllText("Template/Entity.txt");
+            entityStr = entityStr.Replace("{inheritEntity}", createFlag ? "RocSupplyEntity" : "RocEntity");
             entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
             entityStr = entityStr.Replace("{description}", " This is the class description");
             entityStr = entityStr.Replace("{auther}", author);
@@ -306,10 +672,10 @@ namespace testorm
                 sb.Append('\n');
                 sb.Append("                ");
                 var field = ToPascal(dt.Rows[i]["columnName"]?.ToString() ?? "");
-                sb.Append($"!string.IsNullOrEmpty(input.{field}),");
+                sb.Append(checkTypeFlag(checkType(dt.Rows[i][3].ToString()), field));
                 sb.Append('\n');
                 sb.Append("                ");
-                sb.Append($"x => x.{field}.Contains(input.{field}))");
+                sb.Append(checkTypeExpression(checkType(dt.Rows[i][3].ToString()), field));
             }
             entityStr = entityStr.Replace("{queryContent}", sb.ToString());
             entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
@@ -317,56 +683,202 @@ namespace testorm
             entityStr = entityStr.Replace("{auther}", author);
             entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
             entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{DataBase}", DataBase);
             entityStr = entityStr.Replace("{className}", ToPascal(tableName));
             var ServicePath = filePath + "/" + ToPascal(tableName) + "Services.cs";
             File.WriteAllText(ServicePath, entityStr.ToString());
-            // 6、开始生成 Input
-            entityStr = File.ReadAllText("Template/Input.txt");
+            // 7、开始生成 pageEntity
+            entityStr = File.ReadAllText("Template/RocPage.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            var pageEntityPath = filePath + "/RocPage.cs";
+            File.WriteAllText(pageEntityPath, entityStr.ToString());
+
+            // 8 生成前端 api.js
+            entityStr = File.ReadAllText("Template/UI/api.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{className}", ToPascal(tableName).ToLower());
+            var apiPath = filePath + "/" + ToPascal(tableName,true)+".js";
+            File.WriteAllText(apiPath, entityStr.ToString());
+
+            // 9 生成 view.vue
+            entityStr = File.ReadAllText("Template/UI/view.txt");
+            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
+            entityStr = entityStr.Replace("{description}", " This is the class description");
+            entityStr = entityStr.Replace("{auther}", author);
+            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
+            entityStr = entityStr.Replace("{version}", version);
+            entityStr = entityStr.Replace("{jsName}", ToPascal(tableName, true) + ".js");
+            
+
+            //{searchInput} <el-input v-model="listQuery.title" :placeholder="$t('pleaseEnter') + $t('title')" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
+            // 替换{searchInput}  **{listQuery}
+            var listQuery = "";
             sb.Clear();
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"]?.ToString()?.ToUpper()) && dt.Rows[i]["columnName"].ToString()?.ToUpper() != "ID")
+                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"].ToString()?.ToUpper()) && dt.Rows[i]["columnName"].ToString()?.ToUpper() != "ENABLED")
                     continue;
-                sb.Append('\n');
-                sb.Append('	');
-                sb.Append($"///<summary>");
-                sb.Append('\n');
-                sb.Append('	');
-                sb.Append($"///{dt.Rows[i][2].ToString()}");
-                sb.Append('\n');
-                sb.Append('	');
-                sb.Append($"///</summary>");
+                if(dt.Rows[i]["columnName"]?.ToString().ToLower().IndexOf("name") != -1 || dt.Rows[i]["columnName"]?.ToString().ToLower().IndexOf("title") != -1)
+                {
+                    var field = ToPascal(dt.Rows[i]["columnName"]?.ToString() ?? "", true);
+                    sb.Append("<el-input v-model=\"listQuery.");
+                    sb.Append(field);
+                    sb.Append("\" :placeholder=\"$t('pleaseEnter') + $t('");
+                    sb.Append(field);
+                    sb.Append("')\" style=\"width: 200px;\" class=\"filter-item\" @keyup.enter.native=\"handleFilter\" />");
+                    sb.Append("\r\n\t\t\t");
 
-                sb.Append('\n');
-                sb.Append('	');
-                sb.Append("public ");
-                sb.Append(checkType(dt.Rows[i][3].ToString()));
-                sb.Append(' ');
-                sb.Append(ToPascal(dt.Rows[i][1]?.ToString() ?? ""));
-                sb.Append(' ');
-                sb.Append(" { set; get;} ");
+                    listQuery += field;
+                    listQuery += " : '',";
+                }
+            }
+            entityStr = entityStr.Replace("{listQuery}", listQuery.Substring(0, listQuery.Length-1));
+            entityStr = entityStr.Replace("{searchInput}", sb.ToString());
+
+            // 替换 {content} 
+            sb.Clear();
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"].ToString()?.ToUpper()) && dt.Rows[i]["columnName"].ToString()?.ToUpper() != "ENABLED")
+                    continue;
+
+                var field = ToPascal(dt.Rows[i]["columnName"]?.ToString() ?? "", true);
+                if(field == "enabled"){
+                    sb.Append(@"<el-table-column :label=""$t('enabled')"" class-name=""status-col"" width=""100"">
+				<template slot-scope=""{row}"">
+					<el-tag :type=""row.enabled | statusFilter"">
+						{{ row.enabled }}
+					</el-tag>
+				</template>
+			</el-table-column>");
+                }
+                else
+                {
+                    sb.Append("<el-table-column :label=\"$t('");
+                    sb.Append(field);
+                    sb.Append(@"')"" min-width=""140"" align=""center"">
+				<template slot-scope=""{row}"">
+					<span>{{ row.");
+                    sb.Append(field);
+                    sb.Append(@" }}</span>
+				</template>
+			</el-table-column>");
+                }
+
+                sb.Append("\r\n\t\t\t");
+
             }
             entityStr = entityStr.Replace("{content}", sb.ToString());
-            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
-            entityStr = entityStr.Replace("{description}", " This is the class description");
-            entityStr = entityStr.Replace("{auther}", author);
-            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
-            entityStr = entityStr.Replace("{version}", version);
-            entityStr = entityStr.Replace("{className}", ToPascal(tableName));
-            var InputPath = filePath + "/" + ToPascal(tableName) + "Input.cs";
-            File.WriteAllText(InputPath, entityStr.ToString());
-            // 6、开始生成 pageEntity
-            entityStr = File.ReadAllText("Template/PageEntity.txt");
-            entityStr = entityStr.Replace("{namespace}", nameSpaceStr);
-            entityStr = entityStr.Replace("{description}", " This is the class description");
-            entityStr = entityStr.Replace("{auther}", author);
-            entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
-            entityStr = entityStr.Replace("{version}", version);
-            var pageEntityPath = filePath + "/PageEntity.cs";
-            File.WriteAllText(pageEntityPath, entityStr.ToString());
+
+            // 替换{dialog}
+            sb.Clear();
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"].ToString()?.ToUpper()) && dt.Rows[i]["columnName"].ToString()?.ToUpper() != "ENABLED")
+                    continue;
+                var field = ToPascal(dt.Rows[i]["columnName"]?.ToString() ?? "", true);
+                var fieldType = checkType(dt.Rows[i][3].ToString());
+                sb.Append(@"<el-form-item :label=""$t('");
+                sb.Append(field);
+                sb.Append(@"')"" prop=""category"">
+					<el-input v-model=""submitData.");
+                sb.Append(field);
+                sb.Append(@""" type=""");
+
+                switch (fieldType)
+                {
+                    case "string?":
+                        sb.Append("text");
+                        break;
+                    case "date?":
+                        sb.Append("date");
+                        break;
+                    case "int?":
+                    case "decimal":
+                    case "long?":
+                        sb.Append("number");
+                        break;
+                    default:
+                        sb.Append("text");
+                        break;
+                }
+                sb.Append(@""" />
+				</el-form-item>");
+                sb.Append("\r\n\t\t\t\t");
+            }
+            entityStr = entityStr.Replace("{dialog}", sb.ToString());
+
+
+
+            var viewPath = filePath +  "/" + ToPascal(tableName,true) + ".vue";
+            File.WriteAllText(viewPath, entityStr.ToString());
+
         }
 
-        private static string ToPascal(string str)
+        private static string checkTypeExpression(string type, string field)
+        {
+            string compareExpression;
+            switch (type)
+            {
+                case "string?":
+                case "string":
+                    if(field.ToLower().IndexOf("name") != -1 || field.ToLower().IndexOf("title") != -1)
+                        compareExpression = $"x => x.{field}.Contains(input.{field}))";
+                    else
+                        compareExpression = $"x => x.{field} == input.{field} )";
+                    break;
+                case "int?":
+                case "int":
+                case "long?":
+                case "long":
+                case "decimal?":
+                case "decimal":
+                case "Date?":
+                case "Date":
+                    compareExpression = $"x => x.{field} == input.{field} )";
+                    break;
+                default:
+                    compareExpression = $"x => x.{field} == input.{field} )";
+                    break;
+            }
+            return compareExpression;
+        }
+
+        private static string checkTypeFlag(string type,string field)
+        {
+            string flagExpression;
+            switch (type)
+            {
+                case "string?":
+                case "string":
+                    flagExpression = $"input.{field}.IsNotNullOrEmpty() ,";
+                    break;
+                case "int?":
+                case "int":
+                case "long?":
+                case "long":
+                case "decimal?":
+                case "decimal":
+                case "Date?":
+                case "Date":
+                    flagExpression = $"input.{field} != null ,";
+                    break;
+                default:
+                    flagExpression = $"input.{field}.IsNotNullOrEmpty() ,";
+                    break;
+            }
+            return flagExpression;
+        }
+
+        private static string ToPascal(string str,bool firstLow = false)
         {
             string[] split = str.Split(new char[] { '/', ' ', '_', '.' });
             string newStr = "";
@@ -380,6 +892,42 @@ namespace testorm
                 }
                 newStr += new string(chars);
             }
+
+            switch (newStr)
+            {
+                case "Parentid":
+                    newStr = "ParentId";
+                    break;
+                case "Sortcode":
+                    newStr = "SortCode";
+                    break;
+                case "CreateuserId":
+                    newStr = "CreateuserId";
+                    break;
+                case "CreateuserName":
+                    newStr = "CreateuserName";
+                    break;
+                case "CreateDate":
+                    newStr = "CreateDate";
+                    break;
+                case "Roleid":
+                    newStr = "RoleId";
+                    break;
+                case "Rolename":
+                    newStr = "RoleName";
+                    break;
+                case "Menubuttonid":
+                    newStr = "MenubuttonId";
+                    break;
+
+            }
+            if (firstLow)
+            {
+                char[] chars = newStr.ToCharArray();
+                chars[0] = char.ToLower(chars[0]);
+                newStr = new string(chars);
+                return newStr;
+            }
             return newStr;
         }
 
@@ -392,23 +940,23 @@ namespace testorm
                 case "CHAR":
                 case "TEXT":
                 case "CLOB":
-                    return "string";
+                    return "string?";
                 case "DATE":
                 case "TIME":
                 case "DATETIME":
                 case "TIMESTAMP":
-                    return "Date";
+                    return "Date?";
                 case "DECIMAL":
                 case "DOUBLE PRECISION":
                 case "NUMBER":
                     return "decimal";
                 case "INTEGER":
                 case "int":
-                    return "int";
+                    return "int?";
                 case "LONG":
-                    return "long";
+                    return "long?";
                 default:
-                    return "string";
+                    return "string?";
             }
         }
     }
@@ -659,14 +1207,14 @@ namespace testorm
     {
         public static void Main(string[] args)
         {
-            string connect = "data source=C:\\Users\\Administrator\\AppData\\Local\\Packages\\cf906e41-910f-41ab-9cae-5a814460689d_9g7jfgbsde0p2\\LocalState\\sqlite.db";
-            SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
+            string connect = "Data Source=C:\\Users\\pengfei_ge\\Desktop\\delete\\sqlite.db";
+            SqlSugarClient client = new SqlSugarClient(new ConnectionConfig
             {
                 ConfigId = "A",
                 ConnectionString = connect,
-                DbType = SqlSugar.DbType.Sqlite
+                DbType = SqlSugar.DbType.Sqlite,
             });
-            var dt = sqlSugarClient.Ado.GetDataTable("PRAGMA table_info(schedulework)");
+            var dt = client.Ado.GetDataTable("select * from sys_user");
             Console.WriteLine(dt.Rows.Count);
         }
     }*/
