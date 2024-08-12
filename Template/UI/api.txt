@@ -33,7 +33,7 @@ export function modifyEntity(data){
 
 export function getPageList(data) {
   return request({
-    url: '/{className}/getPageList',
+    url: '/{className}/getpagelist',
     method: 'post',
     data
   })

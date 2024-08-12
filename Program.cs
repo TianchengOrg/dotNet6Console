@@ -240,36 +240,42 @@ namespace testorm
 
             HttpUtillib.SetPlatformInfo("23211536", "QRGXyCbAAu34FYfc8vmc", "192.168.1.27", 1443, true);
 
-            // 组装POST请求body          
+            // 组装POST请求body   获取卡号信息       
             //string body = "{\"cardNo\": \"3151493508\"}";
 
             // 填充Url           
             //string uri = "/artemis/api/irds/v1/card/cardInfo";
 
-            // 组装POST请求body          
+            // 组装POST请求body    新增人员信息      
             //string body = "{\"PersonName\":\"葛饱饱\",\"Gender\":\"1\",\"OrgIndexCode\":\"476b1874-b49e-4a16-ab86-c5467456d008\",\"Birthday\":null,\"PhoneNo\":\"13000110011\",\"email\":\"person1@person.com\",\"certificateType\":\"111\",\"certificateNo\":\"11001001001100110011\",\"jobNo\":\"9999\",\"faces\":{\"faceData\":\"/9j/4AAQSkZJRgABAQEAAAAAAAD/4QBCRXhpZgAATU\"}}";
 
             // 填充Url           
             //string uri = "/artemis/api/resource/v2/person/single/add";
 
-            // 组装POST请求body          
-            *//*string body = "[{\"clientId\": 1,\"PersonName\":\"葛饱饱\",\"Gender\":\"1\",\"OrgIndexCode\":\"476b1874-b49e-4a16-ab86-c5467456d008\",\"Birthday\":\"1990-01-01\",\"PhoneNo\":\"13000110011\",\"email\":\"person1@person.com\",\"certificateType\":\"111\",\"certificateNo\":\"11001001001100110011\",\"jobNo\":\"9999\"}]";
+            // 组装POST请求body     新增人员信息     
+            // string body = "[{\"clientId\": 1,\"PersonName\":\"葛饱饱\",\"Gender\":\"1\",\"OrgIndexCode\":\"476b1874-b49e-4a16-ab86-c5467456d008\",\"Birthday\":\"1990-01-01\",\"PhoneNo\":\"13000110011\",\"email\":\"person1@person.com\",\"certificateType\":\"111\",\"certificateNo\":\"11001001001100110011\",\"jobNo\":\"9999\"}]";
 
             // 填充Url           
-            string uri = "/artemis/api/resource/v1/person/batch/add";*//*
+            // string uri = "/artemis/api/resource/v1/person/batch/add";
 
-            // 组装POST请求body          
+            // 组装POST请求body       获取人员信息列表   
             //string body = "{\"pageNo\": 1,\"pageSize\": 2}";
 
             // 填充Url           
             //string uri = "/artemis/api/resource/v2/person/personList";
-            // 组装POST请求body          
+            // 组装POST请求body          获取门禁出入信息
             //string body = "{\"startTime\": \"2024-03-26T08:00:00.000+08:00\",\"endTime\": \"2024-03-26T08:30:00.000+08:00\"}";
-            var startTime = "2024-04-15T15:04:11+08:00";
-            var endTime = "2024-04-15T15:05:10+08:00";
-            string body = $"{{\"pageNo\": 1,\"pageSize\": 10,\"doorName\":\"精密_门_1\"}}";
-            // 填充Url           
+            //var startTime = "2024-04-15T15:04:11+08:00";
+            //var endTime = "2024-04-15T15:05:10+08:00";
+            string body = $"{{\"pageNo\": 1,\"pageSize\": 1000,\"startTime\":\"2024-04-30T00:00:00.000+08:00\",\"endTime\":\"2024-08-01T00:00:00.000+08:00\",\"personName\":\"赵渴栋\"}}";
+            //// 填充Url           
             string uri = "/artemis/api/acs/v2/door/events";
+
+            // 组装POST请求body       获取部门信息列表   
+            //string body = "{\"pageNo\": 1,\"pageSize\": 100}";
+
+            // 填充Url           
+            //string uri = "/artemis/api/resource/v1/org/orgList";
 
             // 发起POST请求，超时时间15秒，返回响应字节数组
             byte[] result = HttpUtillib.HttpPost(uri, body, 15);
@@ -553,14 +559,14 @@ namespace testorm
         }
     }*/
     #endregion
-    #region honghu 系统 代码生成sqlserver
-    public class program
+    #region roc 系统 代码生成sqlserver
+    /*public class program
     {
         public static void Main(string[] args)
         {
             string DataBase = "honghu";
             // 要生成的表
-            string tableName = "sys_role";
+            string tableName = "mes_store_boom_items";
             // 实体类是否需要创建人信息
             bool createFlag = true;
             // 要跳过的字段
@@ -571,7 +577,7 @@ namespace testorm
             // 版本号
             string version = "1.6";
             // 文件生成地址(默认不传就是桌面)
-            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/generate";
+            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/generate/"+ tableName;
             // 要显示的作者
             string author = "TP";
             // 需要显示的名称空间
@@ -657,7 +663,7 @@ namespace testorm
             entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
             entityStr = entityStr.Replace("{version}", version);
             entityStr = entityStr.Replace("{className}", ToPascal(tableName));
-            var IServicePath = filePath + "/I" + ToPascal(tableName) + "Services.cs";
+            var IServicePath = filePath + "/I" + ToPascal(tableName) + "Service.cs";
             File.WriteAllText(IServicePath, entityStr.ToString());
             // 6、开始生成 Service
             entityStr = File.ReadAllText("Template/Service.txt");
@@ -685,7 +691,7 @@ namespace testorm
             entityStr = entityStr.Replace("{version}", version);
             entityStr = entityStr.Replace("{DataBase}", DataBase);
             entityStr = entityStr.Replace("{className}", ToPascal(tableName));
-            var ServicePath = filePath + "/" + ToPascal(tableName) + "Services.cs";
+            var ServicePath = filePath + "/" + ToPascal(tableName) + "Service.cs";
             File.WriteAllText(ServicePath, entityStr.ToString());
             // 7、开始生成 pageEntity
             entityStr = File.ReadAllText("Template/RocPage.txt");
@@ -705,7 +711,7 @@ namespace testorm
             entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
             entityStr = entityStr.Replace("{version}", version);
             entityStr = entityStr.Replace("{className}", ToPascal(tableName).ToLower());
-            var apiPath = filePath + "/" + ToPascal(tableName,true)+".js";
+            var apiPath = filePath + "/" + ToPascal(tableName, true) + ".js";
             File.WriteAllText(apiPath, entityStr.ToString());
 
             // 9 生成 view.vue
@@ -716,7 +722,7 @@ namespace testorm
             entityStr = entityStr.Replace("{createDate}", DateTime.Now.ToLocalTime().ToString());
             entityStr = entityStr.Replace("{version}", version);
             entityStr = entityStr.Replace("{jsName}", ToPascal(tableName, true) + ".js");
-            
+
 
             //{searchInput} <el-input v-model="listQuery.title" :placeholder="$t('pleaseEnter') + $t('title')" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
             // 替换{searchInput}  **{listQuery}
@@ -726,7 +732,7 @@ namespace testorm
             {
                 if (dt.Columns.Contains("columnName") && skipArr.Contains(dt.Rows[i]["columnName"].ToString()?.ToUpper()) && dt.Rows[i]["columnName"].ToString()?.ToUpper() != "ENABLED")
                     continue;
-                if(dt.Rows[i]["columnName"]?.ToString().ToLower().IndexOf("name") != -1 || dt.Rows[i]["columnName"]?.ToString().ToLower().IndexOf("title") != -1)
+                if (dt.Rows[i]["columnName"]?.ToString().ToLower().IndexOf("name") != -1 || dt.Rows[i]["columnName"]?.ToString().ToLower().IndexOf("title") != -1)
                 {
                     var field = ToPascal(dt.Rows[i]["columnName"]?.ToString() ?? "", true);
                     sb.Append("<el-input v-model=\"listQuery.");
@@ -740,7 +746,8 @@ namespace testorm
                     listQuery += " : '',";
                 }
             }
-            entityStr = entityStr.Replace("{listQuery}", listQuery.Substring(0, listQuery.Length-1));
+            entityStr = entityStr.Replace("{queryParam}", listQuery.Substring(0, listQuery.Length - 1).Replace(": ''",""));
+            entityStr = entityStr.Replace("{listQuery}", listQuery.Substring(0, listQuery.Length - 1));
             entityStr = entityStr.Replace("{searchInput}", sb.ToString());
 
             // 替换 {content} 
@@ -751,7 +758,8 @@ namespace testorm
                     continue;
 
                 var field = ToPascal(dt.Rows[i]["columnName"]?.ToString() ?? "", true);
-                if(field == "enabled"){
+                if (field == "enabled")
+                {
                     sb.Append(@"<el-table-column :label=""$t('enabled')"" class-name=""status-col"" width=""100"">
 				<template slot-scope=""{row}"">
 					<el-tag :type=""row.enabled | statusFilter"">
@@ -818,7 +826,7 @@ namespace testorm
 
 
 
-            var viewPath = filePath +  "/" + ToPascal(tableName,true) + ".vue";
+            var viewPath = filePath + "/" + ToPascal(tableName, true) + ".vue";
             File.WriteAllText(viewPath, entityStr.ToString());
 
         }
@@ -830,7 +838,7 @@ namespace testorm
             {
                 case "string?":
                 case "string":
-                    if(field.ToLower().IndexOf("name") != -1 || field.ToLower().IndexOf("title") != -1)
+                    if (field.ToLower().IndexOf("name") != -1 || field.ToLower().IndexOf("title") != -1)
                         compareExpression = $"x => x.{field}.Contains(input.{field}))";
                     else
                         compareExpression = $"x => x.{field} == input.{field} )";
@@ -852,7 +860,7 @@ namespace testorm
             return compareExpression;
         }
 
-        private static string checkTypeFlag(string type,string field)
+        private static string checkTypeFlag(string type, string field)
         {
             string flagExpression;
             switch (type)
@@ -878,7 +886,7 @@ namespace testorm
             return flagExpression;
         }
 
-        private static string ToPascal(string str,bool firstLow = false)
+        private static string ToPascal(string str, bool firstLow = false)
         {
             string[] split = str.Split(new char[] { '/', ' ', '_', '.' });
             string newStr = "";
@@ -895,11 +903,11 @@ namespace testorm
 
             switch (newStr)
             {
-                case "Parentid":
-                    newStr = "ParentId";
+                case "Arrivalstatus":
+                    newStr = "ArrivalStatus";
                     break;
-                case "Sortcode":
-                    newStr = "SortCode";
+                case "BoomId":
+                    newStr = "BoomId";
                     break;
                 case "CreateuserId":
                     newStr = "CreateuserId";
@@ -910,14 +918,47 @@ namespace testorm
                 case "CreateDate":
                     newStr = "CreateDate";
                     break;
+                case "Freeinspection":
+                    newStr = "FreeInspection";
+                    break;
+                case "Itemcount":
+                    newStr = "ItemCount";
+                    break;
+                case "Itemcode":
+                    newStr = "ItemCode";
+                    break;
+                case "Menubuttonid":
+                    newStr = "MenubuttonId";
+                    break;
                 case "Roleid":
                     newStr = "RoleId";
+                    break;
+                case "Parentid":
+                    newStr = "ParentId";
+                    break;
+                case "Parentcount":
+                    newStr = "ParentCount";
+                    break;
+                case "Partname":
+                    newStr = "PartName";
+                    break;
+                case "Productname":
+                    newStr = "ProductName";
+                    break;
+                case "Pickingstatus":
+                    newStr = "PickingStatus";
+                    break;
+                case "Qualitystatus":
+                    newStr = "QualityStatus";
                     break;
                 case "Rolename":
                     newStr = "RoleName";
                     break;
-                case "Menubuttonid":
-                    newStr = "MenubuttonId";
+                case "Sortcode":
+                    newStr = "SortCode";
+                    break;
+                case "Specialpartname":
+                    newStr = "SpecialPartname";
                     break;
 
             }
@@ -959,7 +1000,7 @@ namespace testorm
                     return "string?";
             }
         }
-    }
+    }*/
     #endregion
     #region 代码生成oracle
     /*public class program
