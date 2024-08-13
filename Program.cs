@@ -107,287 +107,6 @@ namespace testorm
         }
     }*/
     #endregion
-    #region 尝试调用OA系统消息 失败
-    /*public class program
-    {
-        public static async Task Main(string[] args)
-        {
-            string appid = "F557F36E725A20134D084500D44407EA";
-            string cpk;
-            string pricpk;
-
-            RSA rsa = RSA.Create(2048);
-            
-            // 获取公钥并转换为Base64字符串，这与Java中的处理方式可能不同
-            byte[] publicKeyBytes = rsa.ExportRSAPublicKey();
-            byte[] privateKeyBytes =  rsa.ExportRSAPrivateKey();
-            string base64PublicKey = Convert.ToBase64String(publicKeyBytes);
-            string private64KeyBytes = Convert.ToBase64String(privateKeyBytes);
-            cpk =  base64PublicKey;
-            pricpk = private64KeyBytes;
-            
-
-            // 创建HttpClient实例
-            using var httpClient = new HttpClient();
-
-            // 设置请求的URL
-            string url = "http://192.168.1.22:8090/api/ec/dev/auth/regist";
-
-            // 创建HttpRequestMessage，以便添加自定义Header
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
-
-            // 添加Header信息
-            request.Headers.Add("appid", appid);
-            request.Headers.Add("cpk", cpk);
-
-            // 发送POST请求
-            HttpResponseMessage response = await httpClient.SendAsync(request);
-
-            Result res;
-            // 检查响应状态码
-            if (response.IsSuccessStatusCode)
-            {
-                // 读取响应内容
-                string responseBody = await response.Content.ReadAsStringAsync();
-                res = JsonSerializer.Deserialize<Result>(responseBody);
-                Console.WriteLine($"Response: {responseBody}");
-            }
-            else
-            {
-                Console.WriteLine($"Error: {response.StatusCode}");
-                return;
-            }
-            // 获取token
-            url = "http://192.168.1.22:8090/api/ec/dev/auth/applytoken";
-            request = new HttpRequestMessage(HttpMethod.Post, url);
-
-
-            //httpclient的使用请自己封装，可参考ECOLOGY中HttpManager类
-            //HttpManager http = new HttpManager();
-            //请求头信息封装集合
-            //Map<String, String> heads = new HashMap<String, String>();
-            //ECOLOGY返回的系统公钥
-
-            String spk = res.spk;
-            string secret = res.secret;
-            string encryptedMessage;
-
-            var bytes = rsa.Encrypt(Encoding.UTF8.GetBytes(secret), RSAEncryptionPadding.OaepSHA1);
-            encryptedMessage = Convert.ToBase64String(bytes);
-            request.Headers.Add("appid", appid);
-            request.Headers.Add("secret", encryptedMessage);
-            response = await httpClient.SendAsync(request);
-
-            // 检查响应状态码
-            if (response.IsSuccessStatusCode)
-            {
-                // 读取响应内容
-                string responseBody = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Response: {responseBody}");
-            }
-            else
-            {
-                Console.WriteLine($"Error: {response.StatusCode}");
-                return;
-            }
-
-
-            //RSA rsa = new RSA();
-            //对秘钥进行加密传输，防止篡改数据
-            //String secret = rsa.encrypt(null, "调用注册接口返回的secret参数值", null, "utf-8", spk, false);
-            //封装参数到请求头
-            //heads.put("appid", "EEAA5436-7577-4BE0-8C6C-89E9D88805EA");
-            //heads.put("secret", secret);
-            //调用ECOLOGY系统接口进行申请
-            //String data = http.postDataSSL("http://ip:port/api/ec/dev/auth/applytoken", null, heads);
-            //返回的数据格式为json，具体格式参数格式请参考文末API介绍。
-            //注意此时如果申请成功会返回token,请根据业务需要进行保存。
-            //System.out.println(data);
-
-        }
-        public static RSAParameters ImportPublicKeyFromBase64(string base64PublicKey)
-        {
-            // 将Base64编码的公钥字符串解码为字节数组
-            byte[] publicKeyBytes = Convert.FromBase64String(base64PublicKey);
-
-            // 检查公钥前缀以确定其类型（例如，PKCS#1或PKCS#8）
-            // 这里以PKCS#8为例，其开头通常是0x30 (SEQUENCE) followed by 0x81 (length)
-            *//*if (publicKeyBytes[0] != 0x30 || publicKeyBytes[1] != 0x81)
-            {
-                throw new ArgumentException("The provided key is not in the expected PKCS#8 format.");
-            }*//*
-
-            // 移除PKCS#8包装，直接提取RSA公钥信息
-            // 注意：此步骤取决于公钥确切的编码方式，可能需要调整
-            int offset = 2; // PKCS#8头部长度简化示例，实际情况可能更复杂
-            byte[] rsaPublicKeyBytes = new byte[publicKeyBytes.Length - offset];
-            Array.Copy(publicKeyBytes, offset, rsaPublicKeyBytes, 0, rsaPublicKeyBytes.Length);
-
-            // 使用RSA类来解析公钥字节并导出为RSAParameters
-            using (RSA rsa = RSA.Create())
-            {
-                rsa.ImportSubjectPublicKeyInfo(rsaPublicKeyBytes, out _);
-                return rsa.ExportParameters(false); // 只导出公钥参数
-            }
-        }
-    }*/
-    #endregion
-    #region 安防接口调用
-    /*public class program
-    {
-        public static void Main(string[] args)
-        {
-
-            HttpUtillib.SetPlatformInfo("23211536", "QRGXyCbAAu34FYfc8vmc", "192.168.1.27", 1443, true);
-
-            // 组装POST请求body   获取卡号信息       
-            //string body = "{\"cardNo\": \"3151493508\"}";
-
-            // 填充Url           
-            //string uri = "/artemis/api/irds/v1/card/cardInfo";
-
-            // 组装POST请求body    新增人员信息      
-            //string body = "{\"PersonName\":\"葛饱饱\",\"Gender\":\"1\",\"OrgIndexCode\":\"476b1874-b49e-4a16-ab86-c5467456d008\",\"Birthday\":null,\"PhoneNo\":\"13000110011\",\"email\":\"person1@person.com\",\"certificateType\":\"111\",\"certificateNo\":\"11001001001100110011\",\"jobNo\":\"9999\",\"faces\":{\"faceData\":\"/9j/4AAQSkZJRgABAQEAAAAAAAD/4QBCRXhpZgAATU\"}}";
-
-            // 填充Url           
-            //string uri = "/artemis/api/resource/v2/person/single/add";
-
-            // 组装POST请求body     新增人员信息     
-            // string body = "[{\"clientId\": 1,\"PersonName\":\"葛饱饱\",\"Gender\":\"1\",\"OrgIndexCode\":\"476b1874-b49e-4a16-ab86-c5467456d008\",\"Birthday\":\"1990-01-01\",\"PhoneNo\":\"13000110011\",\"email\":\"person1@person.com\",\"certificateType\":\"111\",\"certificateNo\":\"11001001001100110011\",\"jobNo\":\"9999\"}]";
-
-            // 填充Url           
-            // string uri = "/artemis/api/resource/v1/person/batch/add";
-
-            // 组装POST请求body       获取人员信息列表   
-            //string body = "{\"pageNo\": 1,\"pageSize\": 2}";
-
-            // 填充Url           
-            //string uri = "/artemis/api/resource/v2/person/personList";
-            // 组装POST请求body          获取门禁出入信息
-            //string body = "{\"startTime\": \"2024-03-26T08:00:00.000+08:00\",\"endTime\": \"2024-03-26T08:30:00.000+08:00\"}";
-            //var startTime = "2024-04-15T15:04:11+08:00";
-            //var endTime = "2024-04-15T15:05:10+08:00";
-            string body = $"{{\"pageNo\": 1,\"pageSize\": 1000,\"startTime\":\"2024-04-30T00:00:00.000+08:00\",\"endTime\":\"2024-08-01T00:00:00.000+08:00\",\"personName\":\"赵渴栋\"}}";
-            //// 填充Url           
-            string uri = "/artemis/api/acs/v2/door/events";
-
-            // 组装POST请求body       获取部门信息列表   
-            //string body = "{\"pageNo\": 1,\"pageSize\": 100}";
-
-            // 填充Url           
-            //string uri = "/artemis/api/resource/v1/org/orgList";
-
-            // 发起POST请求，超时时间15秒，返回响应字节数组
-            byte[] result = HttpUtillib.HttpPost(uri, body, 15);
-            if (null == result)
-            {
-                // 请求失败
-                Console.WriteLine("/artemis/api/irds/v1/card/cardInf: POST fail");
-            }
-            else
-            {
-                //// 注意：使用方应当知道哪个Url返回的是字节流（如根据图片Url获取图片数据流），
-                ////       哪个肯定是字符串，如果肯定是返回字符串的，直接转成字符串即可
-                ////       如果是返回字节流的，有可能因为请求失败了返回json报文，因此对于这种情况需要将字节流
-                ////       转换成字符串判断是否存在失败的情况，如果存在失败则按字符串处理，否则认为返回的是字节流
-                ////       本例中根据监控点编号查询监控点信息，不存在返回字节流的情况，直接转换成字符串来处理即可
-                var json = System.Text.Encoding.UTF8.GetString(result);
-                Console.WriteLine(json);
-            }
-
-            Console.WriteLine("调用");
-        }
-        private static string HmacSHA256(string secret, string signKey)
-        {
-            string signRet = string.Empty;
-            using (HMACSHA256 mac = new HMACSHA256(Encoding.UTF8.GetBytes(signKey)))
-            {
-                byte[] hash = mac.ComputeHash(Encoding.UTF8.GetBytes(secret));
-                signRet = Convert.ToBase64String(hash);
-                //signRet = ToHexString(hash); ;
-            }
-            return signRet;
-        }
-
-        private static string HmacSHA2562(string secret, string stringToSign)
-        {
-            string signRet = string.Empty;
-            byte[] keyBytes = Encoding.UTF8.GetBytes(secret);
-            HMACSHA256 mac = new HMACSHA256();
-            mac.Key = keyBytes;
-            byte[] signBytes = Encoding.UTF8.GetBytes(stringToSign);
-            byte[] hash = mac.ComputeHash(signBytes);
-            signRet = Convert.ToBase64String(hash);
-            return signRet;
-        }
-
-        public static string HmacSHA256Encrypt(string secret, string signKey)
-        {
-            string signRet = string.Empty;
-            using (HMACSHA256 mac = new HMACSHA256(Encoding.UTF8.GetBytes(secret)))
-            {
-                mac.Initialize();
-                byte[] hash = mac.ComputeHash(Encoding.UTF8.GetBytes(signKey));
-                sbyte[] sb = new sbyte[hash.Length];
-                for (int i = 0; i < hash.Length; i++)
-                {
-                    sb[i] = hash[i] <= 127 ? (sbyte)hash[i] : (sbyte)(hash[i] - 256);
-                }
-                byte[] unsignedByteArray = (byte[])(Array)sb;
-                signRet = Convert.ToBase64String(unsignedByteArray);
-            }
-            return signRet;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="url">请求后台地址</param>
-        /// <returns></returns>
-        public async static Task<string> Post()
-        {
-            DateTime date = DateTime.Now;
-            var dateStr = date.ToString();
-            var ak = "23211536";
-            var sk = "QRGXyCbAAu34FYfc8vmc";
-            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var dateLong = Convert.ToInt64((date.ToUniversalTime() - epoch).TotalMilliseconds);
-            var uri = "/artemis/api/v1/oauth/token";
-
-            var signature = $"POST\nx-ca-key:{ak}\n{uri}";
-            //var temp = "POST\n*\ntext/plain;charset=UTF-8\nheader-a:A\nheader-b:b\nx-ca-key:29666671\nx-ca-timestamp:1479968678000\n/artemis/api/example?a-body=a&qa=a&qb=B&x-body=x";
-
-            Console.WriteLine(signature);
-
-            var qianming = HmacSHA2562(sk, signature);
-
-            Console.WriteLine(qianming);
-
-            string result = "";
-            var handler = new HttpClientHandler();
-            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-            handler.ServerCertificateCustomValidationCallback =
-                    (httpRequestMessage, cert, cetChain, policyErrors) =>
-                    {
-                        return true;
-                    };
-            HttpClient httpClient = new HttpClient(handler);
-            httpClient.DefaultRequestHeaders.Add("X-Ca-Key", ak);
-            httpClient.DefaultRequestHeaders.Add("X-Ca-Signature", qianming);
-            httpClient.DefaultRequestHeaders.Add("X-Ca-Signature-Headers", "x-ca-key");
-            //System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-            //httpClient.BaseAddress = new Uri("https://192.168.1.27:1443" + uri);
-
-            var response = await httpClient.PostAsync("https://192.168.1.27:1443/artemis/api/v1/oauth/token", null);
-
-
-            result = response.Content.ReadAsStringAsync().Result;
-
-            Console.WriteLine(result);
-            return result;
-        }
-    }*/
-    #endregion
     #region 定时器
     /*class Scheduler
     {
@@ -583,7 +302,7 @@ namespace testorm
             // 需要显示的名称空间
             string nameSpaceStr = "Single";
             // SQLSERVER 
-            var sqlserverConn1 = $"Server=192.168.1.25;DataBase={DataBase};User ID=sa;Pwd=Passw0rd;connection timeout=600";
+            var sqlserverConn1 = $"Server=192.168.0.00;DataBase={DataBase};User ID=sa;Pwd=000000;connection timeout=600";
 
             if (!Directory.Exists(filePath))
             {
@@ -1020,7 +739,7 @@ namespace testorm
             // 需要显示的名称空间
             string nameSpaceStr = "Bi";
             //锦溪正式Oracle
-            var oracleConn1 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=jxbaizedb-scan1.luxshare.com.cn)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedb)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            var oracleConn1 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=00.00.00.00)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=test)));Persist Security Info=True;User ID=aa;Password=aa;";
 
             if (!Directory.Exists(filePath))
             {
@@ -1265,7 +984,7 @@ namespace testorm
     {
         public static void Main(string[] args)
         {
-            string connect = "Server=192.168.1.25;DataBase=bireport;User ID=sa;Pwd=Passw0rd";
+            string connect = "Server=192.168.0.00;DataBase=bireport;User ID=sa;Pwd=000000";
             SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
             {
                 ConfigId = "A",
@@ -1376,7 +1095,7 @@ namespace testorm
     {
         public static void Main(string[] args)
         {
-            string connect = "Compress=True;CheckCompressedHash=False;Compressor=lz4;Host=10.32.44.215;Port=8123;User=default;Password=;SocketTimeout=600000;Database=datasets;";
+            string connect = "Compress=True;CheckCompressedHash=False;Compressor=lz4;Host=00.00.00.00;Port=8123;User=default;Password=;SocketTimeout=600000;Database=datasets;";
             SqlSugarClient client = new SqlSugarClient(new ConnectionConfig
             {
                 IsAutoCloseConnection = true,
@@ -1475,7 +1194,7 @@ namespace testorm
         public static void Main(string[] args)
         {
             //锦溪正式Oracle
-            var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=jxbaizedb-scan1.luxshare.com.cn)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedb)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=00.00.00.00)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=test)));Persist Security Info=True;User ID=aa;Password=aa;";
             SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
             {
                 ConfigId = "A",
@@ -1498,11 +1217,11 @@ namespace testorm
         {
             string tableName = "AUTO_TURN";
             //锦溪正式Oracle
-            var oracleConn1 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=jxbaizedb-scan1.luxshare.com.cn)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedb)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            var oracleConn1 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=00.00.00.00)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=test)));Persist Security Info=True;User ID=aa;Password=aa;";
             // 越南正式oracle
-            var oracleConn2 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST =vnc1pb1-scan1.luxshare.com.cn)(PORT = 1521))(CONNECT_DATA=(SERVICE_NAME=baizedb))) ;Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            var oracleConn2 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST =00.00.00.00)(PORT = 1521))(CONNECT_DATA=(SERVICE_NAME=test))) ;Persist Security Info=True;User ID=aa;Password=aa;";
             // 锦溪测试Oracle
-            //var oracleConn2 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.32.44.54)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedev)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            //var oracleConn2 = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=00.00.00.00)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=test)));Persist Security Info=True;User ID=aa;Password=aa;";
             SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
             {
                 ConfigId = "A",
@@ -1542,9 +1261,9 @@ namespace testorm
 
             var mysqlConn = "Server=10.32.44.78;User ID=report01;Password=Baize.2022;port=3306;Database=aj_report;CharSet=utf8;pooling=true;SslMode=None;";
             // 锦溪正式Oracle
-            var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST =vnc1pb1-scan1.luxshare.com.cn)(PORT = 1521))(CONNECT_DATA=(SERVICE_NAME=baizedb))) ;Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST =00.00.00.00)(PORT = 1521))(CONNECT_DATA=(SERVICE_NAME=test))) ;Persist Security Info=True;User ID=aa;Password=aa;";
             // 锦溪测试Oracle
-            //var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.32.44.54)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=baizedev)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;";
+            //var oracleConn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=00.00.00.00)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=test)));Persist Security Info=True;User ID=aa;Password=aa;";
             SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig
             {
                 ConfigId = "A",
@@ -1748,8 +1467,8 @@ namespace testorm
     {
         public static void Main(string[] args)
         {
-            var conn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.191.21.53)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=baizedev)));Persist Security Info=True;User ID=ledrpt;Password=ledrpt;connect timeout = 600;";
-            //var conn = "Data Source=(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = jxbaizedb-scan1.luxshare.com.cn)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = baizedb))); Persist Security Info=True;User ID=ledrpt;Password=ledrpt;connect timeout = 600;";
+            var conn = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=00.00.00.00)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=test)));Persist Security Info=True;User ID=aa;Password=aa;connect timeout = 600;";
+            //var conn = "Data Source=(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = 00.00.00.00)(PORT = 1521))) (CONNECT_DATA =(SERVICE_NAME = test))); Persist Security Info=True;User ID=aa;Password=aa;connect timeout = 600;";
             var sql = "SELECT id,WORKORDER ,partid,LINENAME ,CONFIG ,STEPNAME ,PANEL , UNITID ,STATUS ,TRACKTIME ,EQPID ,CREATETIME \r\nFROM LEDRPT.RPT_UNIT_TRACKOUT_DETAIL rutd \r\nWHERE ROWNUM < 1000";
             var sqlSugarClient = new SqlSugarClient(new ConnectionConfig
             {
