@@ -283,9 +283,9 @@ namespace testorm
     {
         public static void Main(string[] args)
         {
-            string DataBase = "honghu";
+            string DataBase = "roc";
             // 要生成的表
-            string tableName = "mes_store_boom_items";
+            string tableName = "xxxx";
             // 实体类是否需要创建人信息
             bool createFlag = true;
             // 要跳过的字段
